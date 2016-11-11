@@ -1,0 +1,146 @@
+<!doctype html>
+<head>
+<title>Collision detection prototype</title>
+<script src="../src/vector.js"></script>
+<script src="../src/physics.js"></script>
+<script>
+
+const segments = [];
+const points = [];
+const colours = ['green', 'blue', 'red', 'purple', 'cyan', 'crimson', 'deeppink', 'skyblue', 'indigo', 'orange'];
+
+const boundingRadius = 1.5;
+
+class Segment {
+    constructor(position, vector) {
+        this.position = position;
+        this.vector = vector;
+        segments.push(this);
+    }
+
+    startPoint() {
+        return this.position;
+    }
+
+    midPoint() {
+        return this.vector.midPoint().translate(this.position);
+    }
+
+    endPoint() {
+        return this.position.copy().translate(this.vector);
+    }
+}
+
+function drawSegment(s, colour) {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M${s.position.x},${s.position.y} l${s.vector.x},${s.vector.y}`);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', colour);
+    path.setAttribute('stroke-width', '0.1');
+    path.setAttribute('marker-end', 'url(#arrow)');
+    document.querySelector('#gameobjects').appendChild(path);
+}
+
+function drawPoint(point, colour) {
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', point.x);
+    circle.setAttribute('cy', point.y);
+    circle.setAttribute('r', '0.12');
+    circle.setAttribute('fill', colour);
+    document.querySelector('#gameobjects').appendChild(circle);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', '0');
+    text.setAttribute('font-size', '0.03');
+    text.setAttribute('transform', `scale(1,-1) translate(${point.x+0.15},-${point.y-0.1})`);
+    text.innerHTML = `(${point.x},${point.y})`;
+    document.querySelector('#gameobjects').appendChild(text);
+}
+
+function drawBoundary(position, colour) {
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', position.x);
+    circle.setAttribute('cy', position.y);
+    circle.setAttribute('r', boundingRadius);
+    circle.setAttribute('fill', 'none');
+    circle.setAttribute('stroke', colour);
+    circle.setAttribute('stroke-width', '0.05');
+    document.querySelector('#gameobjects').appendChild(circle);
+}
+
+function drawAll() {
+    let colour = 0;
+    segments.forEach(segment => drawSegment(segment, colours[colour++ % colours.length]));
+    points.forEach(point => drawPoint(point, colours[colour++ % colours.length]));
+    points.forEach(point => drawBoundary(point, '#CCC'));
+}
+
+function findPointOfCollision(a, b) {
+    aStart = a.startPoint();
+    aMid = a.midPoint();
+    aEnd = a.endPoint();
+    bStart = b.startPoint();
+    bMid = b.midPoint();
+    bEnd = b.endPoint();
+   
+    // will need to re-order the segments so that start is always closest to start
+
+    if (aStart.distanceTo(aMid) > 1 || bStart.distanceTo(bMid) > 1) {
+        let bClosest = bStart;
+        let bFarthest = bEnd;
+        if (aEnd.distanceTo(bStart) < aEnd.distanceTo(bEnd)) {
+            console.log('closest to aEnd is bStart');
+            bClosest = bEnd;
+            bFarthest = bStart;
+        } else {
+            console.log('closest to aEnd is bEnd');
+        } 
+
+        const d1 = aStart.distanceTo(bClosest);
+        console.log(`d1 = ${d1}`);
+        const d2 = aMid.distanceTo(bMid);
+        console.log(`d2 = ${d2}`);
+        const d3 = aEnd.distanceTo(bFarthest);
+        console.log(`d3 = ${d3}`);
+
+        //findPointOfCollision(new Segment(
+    }
+}
+
+window.onload = function() {
+    const a = new Segment(new Point(1,3), new Vector2d(3,5));
+    const b = new Segment(new Point(8,1), new Vector2d(-3,5));
+
+    points.push(a.midPoint());
+    points.push(b.midPoint());
+    points.push(a.endPoint());
+    points.push(b.endPoint());
+    points.push(a.startPoint());
+    points.push(b.startPoint());
+
+    findPointOfCollision(a, b);
+    
+
+    drawAll();
+}
+
+</script>
+<style>
+body {font-family: sans-serif;}
+svg {height: 95vh;}
+marker {overflow: visible;}
+</style>
+</head>
+<body>
+<svg id='render' viewBox="0 0 10 10">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,-5 l5,5 l-5,5 z" fill="grey"/>
+</marker>
+</defs>
+<g transform='translate(0,10) scale(1,-1) ' id="gameobjects">
+<path d="M0,-100 v200 M-100,0 h200" stroke='#666' stroke-dasharray='0.2' stroke-width="0.1"/>
+</g>
+</svg>
+</body>
+</html>
