@@ -1,0 +1,129 @@
+<!doctype html>
+<head>
+<meta charset="utf-8">
+<title>Galaxy</title>
+<!-- Re-use my Galaxy thing from http://www.andronikos.id.au, since it seems appropriate-->
+
+<style>
+    body {
+        margin: 0;
+        background: black;
+        font-family: sans-serif;
+    }
+    canvas {
+        background: black;
+    }
+    #links {
+        text-align: center;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    a:visited, a {
+        color: #999;
+        font-weight: bold;
+        text-decoration: none;
+    }
+    a:not(:first-of-type):before {
+        content: " \00B7  " ;
+        color: #555;
+    }
+</style>
+
+<script>
+window.onload = function() {
+    "use strict"
+
+    var canvas = document.getElementById('canvas');
+    var ctxt = canvas.getContext('2d');
+
+    var width = window.innerWidth;
+    var height = window.innerHeight - 100;
+
+    ctxt.canvas.width  = width;
+    ctxt.canvas.height = height;
+
+    var mid = {x: width / 2, y: height / 2};
+
+    var angles = [0, 60, 180, 250];
+    var extra_colours = ["#aaa", "red", "yellow", "cyan", "blue"];
+    var spread = 200;
+    var tightness = 1;
+
+    function deg2rad(angle_deg) {
+        return Math.PI / 180 * angle_deg;
+    }
+
+    function rotate_point(p, angle_rad) {
+        return {
+            "x": p.x * Math.cos(angle_rad) - p.y * Math.sin(angle_rad),
+            "y": p.x * Math.sin(angle_rad) + p.y * Math.cos(angle_rad)
+        };
+    }
+
+    // r is the radius of the spiral, t is the distance from the center.
+    function point_on_logarithmic_spiral(r, t) {
+        var rad = deg2rad(t);
+        return {
+            "x": r * t * Math.cos(rad),
+            "y": r * t * Math.sin(rad)
+        };
+    }
+
+    // draws a star close but randomly distant to a point. Has a higher
+    // probability of being close to the point given.
+    function draw_star(p, col) {
+        ctxt.fillStyle = col || "#333";
+        
+        ctxt.globalCompositeOperation = "lighter";
+        // subtracting random from random results in a distribution between
+        // -1 and 1, with higher distribution frequency close to 0.
+        var nx = p.x + (Math.random() - Math.random()) * 20;
+        var ny = p.y + (Math.random() - Math.random()) * 20;
+        ctxt.fillRect(nx + mid.x, ny + mid.y, 3, 3);
+    }
+
+    function draw_galaxy() {
+  
+        ctxt.clearRect(0, 0, width, height);
+
+        for (var i = 0; i < spread; i++) {
+            var p = point_on_logarithmic_spiral(tightness, i);
+
+            for (var angle of angles) {
+                draw_star(rotate_point(p, deg2rad(angle)));
+
+                if (Math.random() < 1 - (i / spread)) {
+                    draw_star(
+                        rotate_point(p, deg2rad(angle)),
+                        Math.random() > 0.02 ? extra_colours[0] : 
+                        extra_colours[Math.random() * (extra_colours.length - 1) + 1|0]
+                    );
+                }
+
+            }
+        }
+    };
+
+    draw_galaxy();
+}
+</script>
+
+</head>
+
+<body>
+<h1>Space Battle</h1>
+<canvas id="canvas" width="400" height="400"></canvas>
+<div id="menu">
+<a href="https://nikosandronikos.github.io/spacebattle/src/">The Game</a>
+<h2>Prototypes</h2>
+<a href="https://nikosandronikos.github.io/spacebattle/prototypes/gameloop.html">Game loop</a>
+<a href="https://nikosandronikos.github.io/spacebattle/prototypes/collision.html">Collision detection</a>
+</div>
+<div id="links">
+<a href="https://twitter.com/nandronikos">Twitter</a>
+<a href="https://github.com/nikosandronikos/spacebattle">View on GitHub</a>
+</div>
+
+</body>
+</html>
