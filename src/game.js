@@ -4,10 +4,10 @@ window.onload = function() {
     const physicsPerSecond = 25;
     const physicsFrameTime = 1000 / physicsPerSecond;
     const framesBeforeDrop = 5;
-    let physicsFrameTimeAccumulator = startTime;
 
     let startTime = performance.now();
     let lastTime = startTime;
+    let physicsFrameTimeAccumulator = startTime;
 
     // Performance metrics
     let skippedUpdates = 0;
