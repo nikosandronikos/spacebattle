@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+<script>
+// Physics updates run at a fixed frequency, independent of rendering
+// frame rate.
+const physicsPerSecond = 2;
+const physicsFrameTime = 1000 / physicsPerSecond;
+const framesBeforeDrop = 5;
+
+let nFrames = 0;
+let startTime = performance.now();
+let lastTime = startTime;
+let physicsFrameTimeAccumulator = startTime;
+
+// metrics
+let skippedUpdates = 0;
+let multiUpdates = 0;
+let maxMultiUpdate = 0;
+
+// animation state
+const degreesPerMs = 2 * Math.PI / 10000;
+let currentAngle = -Math.PI;
+
+let controlAngle = -Math.PI;
+
+function physics(frameTime) {
+  // Not really 'physics' per se, but you get the point.
+  currentAngle -= frameTime * degreesPerMs;
+}
+
+// To smooth out the rendering - we want to update the visual representation more often than
+// the physical representation is being updated.
+// To acheive this, we interpolate between the physical position, and the expected position
+// at the next physics update.
+function render(interpolate) {
+    console.log(interpolate);
+
+    let line = document.querySelector("#secondHand");
+    line.x2.baseVal.value = 95 * Math.sin(currentAngle);
+    line.y2.baseVal.value = 95 * Math.cos(currentAngle);
+
+    line = document.querySelector("#secondHandInterpolated");
+    const InterpolatedAngle = currentAngle - (physicsFrameTime * interpolate * degreesPerMs);
+    line.x2.baseVal.value = 95 * Math.sin(InterpolatedAngle);
+    line.y2.baseVal.value = 95 * Math.cos(InterpolatedAngle);
+}
+
+// Physics engines work best when they run at a constant udpate interval,
+// independent of the rendering frame rate.
+// This game loop implements this, with the physics frequency set to
+// 25 fps, and the rendering update running as quickly as possible.
+// If the game loop is running so slowly that we get to the point where
+// 'framesBeforeDrop' frames is run each render frame, then the game
+// will start to actually slow down - and in a network game this is probably
+// where we'll drop the player, or pause the action or something.
+function frame(time) {
+    const timeSinceStart = time - startTime;
+
+    if (timeSinceStart <= 60000) {
+        // run for one minute
+        window.requestAnimationFrame(frame);
+    } else {
+        console.log(`skipped updates (good) = ${skippedUpdates}`);
+        console.log(`multi updates (bad) = ${multiUpdates}`);
+        console.log(`max multi update = ${maxMultiUpdate}`);    
+        return;
+    }
+
+    const frameTime = time - lastTime;
+    lastTime = time;
+
+    let loops = 0;
+    while (performance.now() > physicsFrameTimeAccumulator && loops < framesBeforeDrop) {
+        // using a frameTime less than the full physicsFrameTime to get the 
+        // hands behaving properly when an absurdly low physics fps is set.
+        // Wouldn't bother in a proper game loop with a high physics fps.
+        physics(timeSinceStart > physicsFrameTime ? physicsFrameTime : timeSinceStart);
+        physicsFrameTimeAccumulator += physicsFrameTime;
+        loops ++;
+    }
+
+    // Log some performanc metrics
+    if (loops === 0) skippedUpdates++;
+    else if (loops > 1) {
+        multiUpdates++;
+        if (loops > maxMultiUpdate) maxMultiUpdate = loops;
+    }
+
+    // Run rendering update, pass the interpolate value, which indicates
+    // (using a value between 0 and 1) how far between physics updates we are.
+    render((performance.now() + physicsFrameTime - physicsFrameTimeAccumulator) / physicsFrameTime);
+}
+
+window.requestAnimationFrame(frame);
+
+</script>
+<style>
+svg {height: 95vh;}
+</style>
+</head>
+<body>
+<svg viewBox="-100 -100 200 200">
+  <circle r="98" fill="none" stroke="black"/>
+  <line id="secondHandInterpolated" x2="0" y2="-95" stroke="red"/>
+  <line id="secondHand" x2="0" y2="-95" stroke="black"/>
+</svg>
+</body>
+</html>
