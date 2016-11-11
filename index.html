@@ -4,32 +4,6 @@
 <title>Galaxy</title>
 <!-- Re-use my Galaxy thing from http://www.andronikos.id.au, since it seems appropriate-->
 
-<style>
-    body {
-        margin: 0;
-        background: black;
-        font-family: sans-serif;
-    }
-    canvas {
-        background: black;
-    }
-    #links {
-        text-align: center;
-    }
-    a:hover {
-        text-decoration: underline;
-    }
-    a:visited, a {
-        color: #999;
-        font-weight: bold;
-        text-decoration: none;
-    }
-    a:not(:first-of-type):before {
-        content: " \00B7  " ;
-        color: #555;
-    }
-</style>
-
 <script>
 window.onload = function() {
     "use strict"
@@ -38,7 +12,7 @@ window.onload = function() {
     var ctxt = canvas.getContext('2d');
 
     var width = window.innerWidth;
-    var height = window.innerHeight - 100;
+    var height = window.innerHeight - 200;
 
     ctxt.canvas.width  = width;
     ctxt.canvas.height = height;
@@ -109,21 +83,80 @@ window.onload = function() {
 }
 </script>
 
+<style>
+    @import url('https://fonts.googleapis.com/css?family=Press+Start+2P');
+    body {
+        margin: 0;
+        background: black;
+        font-family: 'Press Start 2P', sans-serif;
+    }
+    h1, h2 {
+        color: #999;
+        text-align: center;
+        margin-bottom: 1em;
+    }
+    h2 {
+        color: #999;
+    }
+    canvas {
+        background: black;
+    }
+    .fullscreenish {
+        height: 100vh;
+    }
+    #start {
+        display: block;
+        text-align: center;
+        font-size: 2rem;
+        color: #999;
+        margin-bottom: 2em;
+    }
+    #start:hover {
+        color: red;
+    }
+    .menu {
+        text-align: center;
+        color: #555;
+    }
+    .menu > .submenu > h2 {
+        display: inline;
+    }
+
+    a:visited, a {
+        color: #555;
+        font-weight: bold;
+        text-decoration: none;
+    }
+    a:not(:first-of-type):before {
+        content: " \00B7  " ;
+        color: #555;
+    }
+    a:hover {
+        color: cyan;
+    }
+</style>
+
 </head>
 
 <body>
+<div class="fullscreenish">
 <h1>Space Battle</h1>
 <canvas id="canvas" width="400" height="400"></canvas>
-<div id="menu">
-<a href="https://nikosandronikos.github.io/spacebattle/src/">The Game</a>
-<h2>Prototypes</h2>
-<a href="https://nikosandronikos.github.io/spacebattle/prototypes/gameloop.html">Game loop</a>
-<a href="https://nikosandronikos.github.io/spacebattle/prototypes/collision.html">Collision detection</a>
+<a id="start" href="https://nikosandronikos.github.io/spacebattle/src/">Go</a>
 </div>
-<div id="links">
-<a href="https://twitter.com/nandronikos">Twitter</a>
-<a href="https://github.com/nikosandronikos/spacebattle">View on GitHub</a>
+<div class="menu">
+    <div class="submenu">
+        <h2>Prototypes</h2> [
+        <a href="https://nikosandronikos.github.io/spacebattle/prototypes/gameloop.html">Game loop</a>
+        <a href="https://nikosandronikos.github.io/spacebattle/prototypes/collision.html">Collision detection</a>
+        ]
+    </div>
+    <div class="submenu">
+        <h2>Links</h2> [
+        <a href="https://github.com/nikosandronikos/spacebattle">View on GitHub</a>
+        <a href="https://twitter.com/nandronikos">Twitter</a>
+        ]
+    </div>
 </div>
-
 </body>
 </html>
