@@ -23,7 +23,6 @@ class Point {
     distanceTo(p2) {
         const x = p2.x - this.x;
         const y = p2.y - this.y;
-        console.log(`distance from ${this.x},${this.y} to ${p2.x},${p2.y} = ${Math.sqrt(x * x + y * y)}`);
         return Math.sqrt(x * x + y * y);
     }
 
@@ -66,6 +65,17 @@ class Rect {
 
     get height() {
         return this.y2 - this.y1;
+    }
+
+    intersects(otherRect) {
+        // No overlap if:
+        // As right edge is to the left of Bs left edge
+        // As left edge is to the right of Bs right edge
+        // As bottom edge is above Bs top edge
+        // As top edge is below Bs bottom edge
+        if (this.x2 < otherRect.x1 || this.x1 > otherRect.x2 || this.y2 < otherRect.y1 || this.y1 > otherRect.y2)
+            return false;
+        return true;
     }
 }
 
