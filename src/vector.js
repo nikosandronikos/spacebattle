@@ -34,6 +34,13 @@ class Vector2d {
         return new Point(this._x / 2, this._y / 2);    
     }
 
+    // Return a point along the vector. i must be a value between zero and one,
+    // with zero being equivalent to the start of the vector and one equivalent
+    // to the end of the vector.
+    pointAt(i) {
+        return new Point(this._x * i, this._y * i);
+    }
+
     dot(b) {
         return this._x * b.x + this._y * b.y;
     }
