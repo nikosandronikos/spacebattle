@@ -173,13 +173,11 @@ class PhysicsModel {
     update(timeDelta) {
         const forceVector = new Vector2d();
 
-        for (let other of this.otherForce) {
-            if (other.duration > 0) {
-                forceVector.add(other.vector);
-                other.duration -= timeDelta;
-            }
-            // FIXME: Remove from the set
-        }
+        this.otherForce.forEach(e => {
+            forceVector.add(e.vector);
+            e.duration -= timeDelta;
+        });
+        this.otherForce.filter = this.otherForce.filter(e => e.duration > 0);
 
         for (let thruster of this.thrusters) {
             forceVector.add(thruster.thrustVector)
