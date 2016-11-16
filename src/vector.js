@@ -1,13 +1,13 @@
 "use strict";
 
-function vectorCopy(v) {
-    return new Vector2d(v.x, v.y);
-}
-
 class Vector2d {
     constructor(x = 0, y = 0) {
         this._x = x;
         this._y = y;
+    }
+
+    copy() {
+        return new Vector2d(this._x, this._y);
     }
 
     set x(value) {
@@ -43,6 +43,13 @@ class Vector2d {
 
     dot(b) {
         return this._x * b.x + this._y * b.y;
+    }
+
+    // Project this vector onto the vector 'b'  and return a new Vector2d
+    // containing the result.
+    projectOnto(b) {
+        const r = b.copy().normalise();
+        return r.multiply(this.dot(r));
     }
 
     zero() {

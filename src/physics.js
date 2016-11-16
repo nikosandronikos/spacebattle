@@ -98,7 +98,7 @@ class PhysicsSystem {
         function transferEnergy(a, b) {
             // momentum: p = mv
             // impulse-momentum change: F * t = mass * Delta v
-            const temp = vectorCopy(a.moveVector);
+            const temp = a.moveVector.copy();
             a.moveVector.add(b.moveVector);
             b.moveVector.add(temp);
         }
