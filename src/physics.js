@@ -39,6 +39,29 @@ class Point {
     }
 }
 
+class PositionVector {
+    constructor(posX, posY, vectorX, vectorY) {
+        this.position = new Point(posX, posY);
+        this.vector = new Vector2d(vectorX, vectorY);
+    }
+
+    startPoint() {
+        return this.position;
+    }
+
+    midPoint() {
+        return this.vector.midPoint().translate(this.position);
+    }
+
+    endPoint() {
+        return this.position.copy().translate(this.vector);
+    }
+
+    pointAt(i) {
+        return this.vector.pointAt(i).translate(this.position);
+    }
+}
+
 class Rect {
     constructor(x1, y1, x2, y2) {
         if (x2 < x1) {
@@ -112,12 +135,13 @@ class PhysicsSystem {
         }
 
         // check for collisions
+        // FIXME: This is n^2, need to add a broad phase test around this
+        // rather than running the check on every object pair.
         for (let model of this.models) {
             const modelPos = model.movePosition();
             for (let other of this.models) {
                 if (other === model) continue;
-                const otherPos = other.movePosition();
-                if (modelPos.distanceTo(otherPos) < model.boundingCircleR + other.boundingCircleR) {
+                if (model.checkCollision(other)) {
                     // change motion, transfer energy, do some damage, don't get stuck
                     console.log('collision');
                     transferEnergy(model, other); 
@@ -153,15 +177,14 @@ class Thruster {
 class PhysicsModel {
     constructor(system, boundingCircleR, mass, position) {
         this.system = system;
-        this.position = new Point(position.x, position.y);
+        this.motion = new PositionVector(position.x, position.y);
         this.boundingCircleR = boundingCircleR;
         this.mass = mass;
         this.thrusters = [];
         this.rotateRate = 10;
         this.rotateDirection = 0;
         this.rotateAngle = 0;
-        this._moveVector = new Vector2d();
-        this.otherForce = new Set();
+        this.otherForce = [];
     }
 
     createThruster(power, angle_vector) {
@@ -177,7 +200,7 @@ class PhysicsModel {
             forceVector.add(e.vector);
             e.duration -= timeDelta;
         });
-        this.otherForce.filter = this.otherForce.filter(e => e.duration > 0);
+        this.otherForce = this.otherForce.filter(e => e.duration > 0);
 
         for (let thruster of this.thrusters) {
             forceVector.add(thruster.thrustVector)
@@ -190,13 +213,12 @@ class PhysicsModel {
 
         forceVector.rotate(this.rotateAngle);
 
-        this._moveVector.add(forceVector);
+        this.motion.vector.add(forceVector);
     }
 
     movePosition() {
         const worlddim = this.system.dimensions;
-        const newP = new Point(this.position.x, this.position.y);
-        newP.translate(this._moveVector);
+        const newP = this.motion.endPoint();
         if (newP.x < worlddim.x1 || newP.x > worlddim.x2)
             newP.x = mod(newP.x, worlddim.width);
         if (newP.y < worlddim.y1 || newP.y > worlddim.y2)
@@ -207,23 +229,27 @@ class PhysicsModel {
         
     move() {
         const worlddim = this.system.dimensions;
-        this.position.translate(this._moveVector);
-        if (this.position.x < worlddim.x1 || this.position.x > worlddim.x2)
-            this.position.x = mod(this.position.x, worlddim.width);
-        if (this.position.y < worlddim.y1 || this.position.y > worlddim.y2)
-            this.position.y = mod(this.position.y, worlddim.height);
+        this.motion.position.translate(this.motion.vector);
+        if (this.motion.position.x < worlddim.x1 || this.motion.position.x > worlddim.x2)
+            this.motion.position.x = mod(this.motion.position.x, worlddim.width);
+        if (this.motion.position.y < worlddim.y1 || this.motion.position.y > worlddim.y2)
+            this.motion.position.y = mod(this.motion.position.y, worlddim.height);
     }
 
     stop() {
-        this._moveVector.zero();
+        this.motion.vector.zero();
     }
 
     rotate(direction) {
         this.rotateDirection = direction;
     }
 
+    get position() {
+        return this.motion.position;
+    }
+
     get moveVector() {
-        return this._moveVector;
+        return this.motion.vector;
     }
 
     thruster(i) {
@@ -231,7 +257,49 @@ class PhysicsModel {
     }
 
     addExternalForce(v, duration) {
-        this.otherForce.add({"vector": v, "duration": duration});
+        this.otherForce.push({"vector": v, "duration": duration});
+    }
+
+    checkCollision(b) {
+        // FIXME: Avoid overhead of creating Rect objects here, just make a
+        // function that takes aPos, aEnd, bPos, bEnd and determines collision.
+        const aPos = this.motion.position;
+        const aEnd = this.motion.endPoint();
+        const collisionRectA =
+            new Rect(
+                aPos.x + (aPos.x < aEnd.x ? -this.boundingCircleR : this.boundingCircleR),
+                aPos.y + (aPos.y < aEnd.y ? -this.boundingCircleR : this.boundingCircleR),
+                aEnd.x + (aPos.x < aEnd.x ? this.boundingCircleR : -this.boundingCircleR),
+                aEnd.y + (aPos.y < aEnd.y ? this.boundingCircleR : -this.boundingCircleR)
+            );
+        const bPos = b.motion.position;
+        const bEnd = b.motion.endPoint();
+        const collisionRectB =
+            new Rect(
+                bPos.x + (bPos.x < bEnd.x ? -b.boundingCircleR : b.boundingCircleR),
+                bPos.y + (bPos.y < bEnd.y ? -b.boundingCircleR : b.boundingCircleR),
+                bEnd.x + (bPos.x < bEnd.x ? b.boundingCircleR : -b.boundingCircleR),
+                bEnd.y + (bPos.y < bEnd.y ? b.boundingCircleR : -b.boundingCircleR)
+            );
+
+        if (!collisionRectA.intersects(collisionRectB)) return false;
+
+        // Work out exactly where during the time step the collision occurred.
+        // This will guide how much motion to apply after the collision.
+        const steps = 4;
+        const step = 1 / (steps - 1)
+        const combinedBounds = this.boundingCircleR + b.boundingCircleR;
+
+        for (let i = 0, p = 0; i < steps; i++, p += step) {
+            const aPoint = this.motion.pointAt(p);
+            const bPoint = b.motion.pointAt(p);
+
+            if (aPoint.distanceTo(bPoint) < combinedBounds) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 
