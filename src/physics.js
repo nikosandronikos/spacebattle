@@ -7,7 +7,7 @@
 
 const zeroVector = new Vector2d();
 
-const maxSpeed = 10;
+const maxSpeed = 1.5;
 
 function mod(v, m) {
     const r = v % m;
@@ -138,7 +138,6 @@ class PhysicsSystem {
         // FIXME: This is n^2, need to add a broad phase test around this
         // rather than running the check on every object pair.
         for (let model of this.models) {
-            const modelPos = model.movePosition();
             for (let other of this.models) {
                 if (other === model) continue;
                 if (model.checkCollision(other)) {
@@ -214,19 +213,12 @@ class PhysicsModel {
         forceVector.rotate(this.rotateAngle);
 
         this.motion.vector.add(forceVector);
+
+        if (this.motion.vector.length > maxSpeed) {
+            this.motion.vector.normalise().multiply(maxSpeed);
+        }
     }
 
-    movePosition() {
-        const worlddim = this.system.dimensions;
-        const newP = this.motion.endPoint();
-        if (newP.x < worlddim.x1 || newP.x > worlddim.x2)
-            newP.x = mod(newP.x, worlddim.width);
-        if (newP.y < worlddim.y1 || newP.y > worlddim.y2)
-            newP.y = mod(newP.y, worlddim.height);
-
-        return newP;
-    }
-        
     move() {
         const worlddim = this.system.dimensions;
         this.motion.position.translate(this.motion.vector);
@@ -260,6 +252,9 @@ class PhysicsModel {
         this.otherForce.push({"vector": v, "duration": duration});
     }
 
+    // Return a value between 0..1 to indicate where in the time slice the
+    // collision occurred.
+    // Otherwise, return false if there is no collision.
     checkCollision(b) {
         // FIXME: Avoid overhead of creating Rect objects here, just make a
         // function that takes aPos, aEnd, bPos, bEnd and determines collision.
@@ -295,7 +290,7 @@ class PhysicsModel {
             const bPoint = b.motion.pointAt(p);
 
             if (aPoint.distanceTo(bPoint) < combinedBounds) {
-                return true;
+                return step;
             }
         }
 
