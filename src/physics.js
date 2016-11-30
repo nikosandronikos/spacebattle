@@ -9,96 +9,181 @@ const zeroVector = new Vector2d();
 
 const maxSpeed = 1.5;
 
+class Hashable {
+    constructor() {
+        this.id = Hashable.nextId++;
+    }
+
+    function toString() {
+        return this.id;
+    }
+}
+Hashable.nextId = 0;
+
 function mod(v, m) {
     const r = v % m;
     return r < 0 ? r + m : r;
 }
 
-class Point {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
+class moveResolver {
+    constructor(physicsSystem, time) {
+        this.system = physicsSystem;
+        this.newTimeSlice();
     }
 
-    distanceTo(p2) {
-        const x = p2.x - this.x;
-        const y = p2.y - this.y;
-        return Math.sqrt(x * x + y * y);
+    // Add objects that will be moving each turn
+    register(model) {
+    }
+    
+    // Add static objects
+    // Initially just border lines.
+    // This will probably include planets, etc too
+    registerStatic(object) {
     }
 
-    // Translate by something that has co-ordinates (e.g. another point, or
-    // a vector.
-    translate(coord) {
-        this.x += coord.x;
-        this.y += coord.y;
-        return this;
+    // Reset everything
+    newTimeSlice() {
+        this.moves = [];
     }
 
-    copy() {
-        return new Point(this.x, this.y);
-    }
-}
-
-class PositionVector {
-    constructor(posX, posY, vectorX, vectorY) {
-        this.position = new Point(posX, posY);
-        this.vector = new Vector2d(vectorX, vectorY);
+    // Add an objects move for this time slice
+    addMove(model, startPos, endPos) {
+        // Split moves that cross boundaries and wrap to other side of
+        // the screen.
+        const worlddim = this.system.dimensions;
+        //if (endPos.x > worlddim.width
     }
 
-    startPoint() {
-        return this.position;
+    /*
+     * 1. Find first collision of each object - add to PriortyQueue
+     * 2. Get first two collisions (they are one collision)
+     * 3. Remove any other collisions involving these objects
+     * 4. Resolve collision and make update to trajectory based on remaining time
+     * 5. Recalculate collisions for updated models (with reduced time slice)
+     * 6. If there are collisions in PriorityQueue, goto 2
+     * 
+     * API needed
+     * - newTimeSlice: resets everything
+     * - moveModel: register move, internally store a vector covering entirety of models movement
+     * - resolveMoves: Move everything, work out collisions, update movement, do this recusively to fill time
+     * Internally need:
+     * - PriorityQueue of collisions
+     * - Get all collisions for a model (allow us to find other things that collide with a model and remove later collisions)
+     */
+    class Collision {
+        constructor(trackerA, trackerB, time) {
+            this.a = trackerA;
+            this.b = trackerB;
+            this.time = time;
+        }
     }
 
-    midPoint() {
-        return this.vector.midPoint().translate(this.position);
-    }
+    class CollisionTracker {
+        constructor() {
+            // The known models.
+            // Each may have multiple collisions detected - but only the first
+            // is used.
+            this.models = {};
 
-    endPoint() {
-        return this.position.copy().translate(this.vector);
-    }
-
-    pointAt(i) {
-        return this.vector.pointAt(i).translate(this.position);
-    }
-}
-
-class Rect {
-    constructor(x1, y1, x2, y2) {
-        if (x2 < x1) {
-            const temp = x2;
-            x2 = x1;
-            x1 = temp;
+            // PriorityQueue of collisions so they can be resolved in time
+            // order.
+            this.collisions = new PriorityQueue((a, b) => a.time < b.time);
         }
 
-        if (y2 < y1) {
-            const temp = y2;
-            y2 = y1;
-            y1 = temp;
+       function _trackedModel(model) {
+            tracker = this.models[model];
+            if (undefined === tracker) {
+                tracker = {hasCollision: false, collisionTime: 0};
+                this.models[model] = tracker;
+            }
+            return tracker;
         }
 
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
-    }
-
-    get width() {
-        return this.x2 - this.x1;
-    }
-
-    get height() {
-        return this.y2 - this.y1;
-    }
-
-    intersects(otherRect) {
-        // No overlap if:
-        // As right edge is to the left of Bs left edge
-        // As left edge is to the right of Bs right edge
-        // As bottom edge is above Bs top edge
-        // As top edge is below Bs bottom edge
-        if (this.x2 < otherRect.x1 || this.x1 > otherRect.x2 || this.y2 < otherRect.y1 || this.y1 > otherRect.y2)
+        function checkModelCollision(modelA, modelB) {
+            a = _trackedModel(modelA);
+            b = _trackedModel(modelB);
             return false;
-        return true;
+        }
+
+        function checkLineCollision(model, line) {
+            tracker = _trackedModel(model);
+            const intersectPoint = model.motion.intersects(line);
+            
+            if (intersectPoint === false) return false;
+
+            const vTravel =
+                vector2dFromPoints(
+                    model.motion.position,
+                    intersectPoint
+                );
+
+            const offset = vTravel.length / model.motion.length; 
+            
+            tracker.hasCollision = true;
+            tracker.collisionTime = offset;
+
+            this.collisions.insert(new Collision(tracker, null, offset));
+        }
+    }
+
+    move() {
+        const worlddim = this.system.dimensions;
+        this.motion.position.translate(this.motion.vector);
+        if (this.motion.position.x < worlddim.x1 || this.motion.position.x > worlddim.x2)
+            this.motion.position.x = mod(this.motion.position.x, worlddim.width);
+        if (this.motion.position.y < worlddim.y1 || this.motion.position.y > worlddim.y2)
+            this.motion.position.y = mod(this.motion.position.y, worlddim.height);
+    }
+
+
+    resolveMoves() {
+        // Return a value between 0..1 to indicate where in the time slice the
+        // collision occurred.
+        // Otherwise, return false if there is no collision.
+        function checkCollision(a, b) {
+            // FIXME: Avoid overhead of creating Rect objects here, just make a
+            // function that takes aPos, aEnd, bPos, bEnd and determines collision.
+            const aPos = a.motion.position;
+            const aEnd = a.motion.endPoint();
+            const collisionRectA =
+                new Rect(
+                    aPos.x + (aPos.x < aEnd.x ? -a.boundingCircleR : a.boundingCircleR),
+                    aPos.y + (aPos.y < aEnd.y ? -a.boundingCircleR : a.boundingCircleR),
+                    aEnd.x + (aPos.x < aEnd.x ? a.boundingCircleR : -a.boundingCircleR),
+                    aEnd.y + (aPos.y < aEnd.y ? a.boundingCircleR : -a.boundingCircleR)
+                );
+            const bPos = b.motion.position;
+            const bEnd = b.motion.endPoint();
+            const collisionRectB =
+                new Rect(
+                    bPos.x + (bPos.x < bEnd.x ? -b.boundingCircleR : b.boundingCircleR),
+                    bPos.y + (bPos.y < bEnd.y ? -b.boundingCircleR : b.boundingCircleR),
+                    bEnd.x + (bPos.x < bEnd.x ? b.boundingCircleR : -b.boundingCircleR),
+                    bEnd.y + (bPos.y < bEnd.y ? b.boundingCircleR : -b.boundingCircleR)
+                );
+
+            if (!collisionRectA.intersects(collisionRectB)) return false;
+
+            // Work out exactly where during the time step the collision occurred.
+            // This will guide how much motion to apply after the collision.
+            const steps = 4;
+            const step = 1 / (steps - 1)
+            const combinedBounds = a.boundingCircleR + b.boundingCircleR;
+
+            for (let i = 0, p = 0; i < steps; i++, p += step) {
+                const aPoint = a.motion.pointAt(p);
+                const bPoint = b.motion.pointAt(p);
+
+                if (aPoint.distanceTo(bPoint) < combinedBounds) {
+                    return step;
+                }
+            }
+
+            return false;
+        }
+        // Determine any collisions and update movement vectors.
+
+        // Move all objects
     }
 }
 
@@ -107,6 +192,24 @@ class PhysicsSystem {
         this.models = [];
         this.dimensions =
             new Rect(dimensions.minX, dimensions.minY, dimensions.maxX, dimensions.maxY);
+        this.boundaries = [
+            positionVectorFromPoints(
+                new Point(dimensions.minX, dimensions.minY),
+                new Point(dimensions.maxX, dimensions.maxY)
+            ),
+            positionVectorFromPoints(
+                new Point(dimensions.maxX, dimensions.minY),
+                new Point(dimensions.maxX, dimensions.maxY)
+            ),
+            positionVectorFromPoints(
+                new Point(dimensions.maxX, dimensions.maxY),
+                new Point(dimensions.minX, dimensions.maxY)
+            ),
+            positionVectorFromPoints(
+                new Point(dimensions.minX, dimensions.maxY),
+                new Point(dimensions.minX, dimensions.minY)
+            )
+        ];
     }
 
     dimensions(minX, minY, maxX, maxY) {
@@ -173,7 +276,7 @@ class Thruster {
     }
 }
 
-class PhysicsModel {
+class PhysicsModel extends Hashable {
     constructor(system, boundingCircleR, mass, position) {
         this.system = system;
         this.motion = new PositionVector(position.x, position.y);
@@ -219,15 +322,6 @@ class PhysicsModel {
         }
     }
 
-    move() {
-        const worlddim = this.system.dimensions;
-        this.motion.position.translate(this.motion.vector);
-        if (this.motion.position.x < worlddim.x1 || this.motion.position.x > worlddim.x2)
-            this.motion.position.x = mod(this.motion.position.x, worlddim.width);
-        if (this.motion.position.y < worlddim.y1 || this.motion.position.y > worlddim.y2)
-            this.motion.position.y = mod(this.motion.position.y, worlddim.height);
-    }
-
     stop() {
         this.motion.vector.zero();
     }
@@ -250,51 +344,6 @@ class PhysicsModel {
 
     addExternalForce(v, duration) {
         this.otherForce.push({"vector": v, "duration": duration});
-    }
-
-    // Return a value between 0..1 to indicate where in the time slice the
-    // collision occurred.
-    // Otherwise, return false if there is no collision.
-    checkCollision(b) {
-        // FIXME: Avoid overhead of creating Rect objects here, just make a
-        // function that takes aPos, aEnd, bPos, bEnd and determines collision.
-        const aPos = this.motion.position;
-        const aEnd = this.motion.endPoint();
-        const collisionRectA =
-            new Rect(
-                aPos.x + (aPos.x < aEnd.x ? -this.boundingCircleR : this.boundingCircleR),
-                aPos.y + (aPos.y < aEnd.y ? -this.boundingCircleR : this.boundingCircleR),
-                aEnd.x + (aPos.x < aEnd.x ? this.boundingCircleR : -this.boundingCircleR),
-                aEnd.y + (aPos.y < aEnd.y ? this.boundingCircleR : -this.boundingCircleR)
-            );
-        const bPos = b.motion.position;
-        const bEnd = b.motion.endPoint();
-        const collisionRectB =
-            new Rect(
-                bPos.x + (bPos.x < bEnd.x ? -b.boundingCircleR : b.boundingCircleR),
-                bPos.y + (bPos.y < bEnd.y ? -b.boundingCircleR : b.boundingCircleR),
-                bEnd.x + (bPos.x < bEnd.x ? b.boundingCircleR : -b.boundingCircleR),
-                bEnd.y + (bPos.y < bEnd.y ? b.boundingCircleR : -b.boundingCircleR)
-            );
-
-        if (!collisionRectA.intersects(collisionRectB)) return false;
-
-        // Work out exactly where during the time step the collision occurred.
-        // This will guide how much motion to apply after the collision.
-        const steps = 4;
-        const step = 1 / (steps - 1)
-        const combinedBounds = this.boundingCircleR + b.boundingCircleR;
-
-        for (let i = 0, p = 0; i < steps; i++, p += step) {
-            const aPoint = this.motion.pointAt(p);
-            const bPoint = b.motion.pointAt(p);
-
-            if (aPoint.distanceTo(bPoint) < combinedBounds) {
-                return step;
-            }
-        }
-
-        return false;
     }
 }
 
