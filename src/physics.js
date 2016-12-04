@@ -25,51 +25,113 @@ function mod(v, m) {
     return r < 0 ? r + m : r;
 }
 
+class Collidable {
+    constructor() {
+    }
+
+    // Usually overridden.
+    testCollision() {
+        return false;
+    }
+}
+
 class moveResolver {
-    constructor(physicsSystem, time) {
+    // API needed
+    // - update 
+    //  Move everything, work out collisions, update movement, do this recusively to fill time
+    //  - newTimeSlice: resets everything
+    //  - moveModel: convert move to a vector covering entirety of models movement
+    // Internally need:
+    // - PriorityQueue of collisions
+    // - Get all collisions for a model (allow us to find other things that collide with a model and remove later collisions)
+
+    constructor(physicsSystem) {
         this.system = physicsSystem;
-        this.newTimeSlice();
+        // The known models.
+        // Each may have multiple collisions detected - but only the first
+        // is used.
+        this.models = {};
+
+        // PriorityQueue of collisions so they can be resolved in time
+        // order.
+        this.collisions = new PriorityQueue((a, b) => a.time < b.time);
+
+        // Lines - the borders of the world at the moment.
+        // FIXME: Generalise this so it can support other things 
+        // (e.g. planets) once I've worked out details.
+        this.lines = [];
+    }
+
+    class TrackedModel implements Collidable {
+        constructor(moveResolver, model) {
+            this.moveResolver = moveResolver;
+            this.model = model;
+            this.hasCollisions = false;
+            this.collisionTime = offset;
+        }
+        
+        toString() { return model.toString(); }
+        
+        checkLineCollision(line) {
+            model = this.model;
+            const intersectPoint = model.motion.intersects(line);
+            
+            if (intersectPoint === false) return false;
+
+            const vTravel =
+                vector2dFromPoints(
+                    model.motion.position,
+                    intersectPoint
+                );
+
+            const offset = vTravel.length / model.motion.length; 
+            
+            this.hasCollision = true;
+            this.collisionTime = offset;
+
+            this.moveResolver.collisions.insert(new Collision(tracker, null, offset));
+        }
+    }
+
+    _trackedModel(model) {
+        tracker = this.models[model];
+        if (undefined === tracker) {
+            tracker = new TrackedModel(model);
+            this.models[model] = tracker;
+        }
+        return tracker;
     }
 
     // Add objects that will be moving each turn
     register(model) {
+        _trackedModel(model);
     }
     
     // Add static objects
     // Initially just border lines.
     // This will probably include planets, etc too
-    registerStatic(object) {
+    registerLine(line) {
+        if !(line instanceof PositionVector)
+            throw "registerLine(): line must be a PositionVector";
+        this.lines.push(line);
     }
 
-    // Reset everything
-    newTimeSlice() {
-        this.moves = [];
+    resolveMoves(timeDelta) {
+        // 0. Reset anything that needs it
+
+        // 1. Find first collision of each object - add to PriortyQueue
+
+        // 2. Get first two collisions (they are one collision)
+
+        // 3. Remove any other collisions involving these objects
+
+        // 4. Resolve collision and make update to trajectory based on remaining time
+
+        // 5. Recalculate collisions for updated models (with reduced time slice)
+
+        // 6. If there are collisions in PriorityQueue, goto 2
     }
 
-    // Add an objects move for this time slice
-    addMove(model, startPos, endPos) {
-        // Split moves that cross boundaries and wrap to other side of
-        // the screen.
-        const worlddim = this.system.dimensions;
-        //if (endPos.x > worlddim.width
-    }
-
-    /*
-     * 1. Find first collision of each object - add to PriortyQueue
-     * 2. Get first two collisions (they are one collision)
-     * 3. Remove any other collisions involving these objects
-     * 4. Resolve collision and make update to trajectory based on remaining time
-     * 5. Recalculate collisions for updated models (with reduced time slice)
-     * 6. If there are collisions in PriorityQueue, goto 2
-     * 
-     * API needed
-     * - newTimeSlice: resets everything
-     * - moveModel: register move, internally store a vector covering entirety of models movement
-     * - resolveMoves: Move everything, work out collisions, update movement, do this recusively to fill time
-     * Internally need:
-     * - PriorityQueue of collisions
-     * - Get all collisions for a model (allow us to find other things that collide with a model and remove later collisions)
-     */
     class Collision {
         constructor(trackerA, trackerB, time) {
             this.a = trackerA;
