@@ -27,6 +27,7 @@ function mod(v, m) {
 
 class PhysicsSystem {
     constructor(dimensions) {
+        this.collisionResolver = new CollisionResolver();
         this.models = [];
         this.dimensions =
             new Rect(dimensions.minX, dimensions.minY, dimensions.maxX, dimensions.maxY);
@@ -56,38 +57,15 @@ class PhysicsSystem {
 
     add(model) {
         this.models.push(model);
+        this.collisionResolver.registerPhysicsModel(model);
     }
 
     update(timeDelta) {
-        function transferEnergy(a, b) {
-            // momentum: p = mv
-            // impulse-momentum change: F * t = mass * Delta v
-            const temp = a.moveVector.copy();
-            a.moveVector.add(b.moveVector);
-            b.moveVector.add(temp);
-        }
-
-        function findPointOfCollision(a, b) {
-             
-        }
-
         for (let model of this.models) {
             model.update(timeDelta);
         }
 
-        // check for collisions
-        // FIXME: This is n^2, need to add a broad phase test around this
-        // rather than running the check on every object pair.
-        for (let model of this.models) {
-            for (let other of this.models) {
-                if (other === model) continue;
-                if (CollisionResolver.checkModelCollision(model, other)) {
-                    // change motion, transfer energy, do some damage, don't get stuck
-                    console.log('collision');
-                    transferEnergy(model, other); 
-                }
-            }
-        }
+        this.collisionResolver.update(timeDelta);
 
         // move the objects
         for (let model of this.models) {

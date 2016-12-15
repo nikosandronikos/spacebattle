@@ -1,6 +1,6 @@
 class TrackedModel {
     constructor(physicsModel) {
-        this.model = physicsModel;
+        this.physicsModel = physicsModel;
 
         // Contains all objects that collide with this object, not including
         // the first collision, which is stored in the Collision object.
@@ -18,10 +18,14 @@ class TrackedModel {
     }
  
     addCollision(c) {
-        this.collisionList.append(c);
+        this.collisionList.push(c);
+    }
+
+    emptyCollisionList() {
+        this.collisionList = [];
     }
  
-    toString() { return this.model.toString(); }
+    toString() { return this.physicsModel.toString(); }
 }
 
 
@@ -38,7 +42,8 @@ class Collision {
     }
 
     updatePhysics() {
-        
+        this.a.physicsModel.motion.vector.rotate(180);
+        this.b.physicsModel.motion.vector.rotate(180);
     }
 
     _resolveLine() {
@@ -58,7 +63,7 @@ class CollisionResolver {
         // The known models.
         // Each may have multiple collisions detected - but only the first
         // is used.
-        this.trackedModels = {};
+        this.trackedModels = [];
 
         // PriorityQueue of collisions so they can be resolved in time
         // order.
@@ -71,21 +76,11 @@ class CollisionResolver {
 
     }
 
-    getOrCreateTrackedModel(hashableModel) {
-        if (!(model instanceof Hashable)) {
-            throw 'model is not Hashable';
-        }
-
-        tracker = this.trackedModels[model];
-        if (undefined === tracker) {
-            tracker = new TrackedModel(model);
-            this.trackedModels[model] = tracker;
-        }
-        return tracker;
-    }
-
     registerPhysicsModel(physicsModel) {
-        return getOrCreateTrackedModel(physicsModel);
+        const tracker = new TrackedModel(physicsModel);
+        console.log(`CollisionResolver now tracking ${physicsModel.toString()}`);
+        this.trackedModels.push(tracker);
+        return tracker;
     }
 
     // Find collisions between all registered objects.
@@ -95,19 +90,23 @@ class CollisionResolver {
         for (line of this.lines) {
         }
 
-        _updateCollisions(this.trackedModels);
+        this._updateCollisions(this.trackedModels);
     }
 
     // Find collisions between all objects in the given iterable.
     _updateCollisions(iterable) {
         // This will result in a list of all collisions, with no duplicates,
         // though a model may be involved in more than one collision.
+
+        for (let tracker of this.trackedModels)
+            tracker.emptyCollisionList();
+
         for (let i = 0; i < this.trackedModels.length; i++) {
             const a = this.trackedModels[i];
             for (let j = i + 1; j < this.trackedModels.length; j++) {
                 const b = this.trackedModels[j];
                 const collisionResult =
-                    checkModelCollision(a.physicsModel, b.physicsModel);
+                    CollisionResolver.checkModelCollision(a.physicsModel, b.physicsModel);
                 if (collisionResult !== false) {
                     const c = new Collision(a, b, collisionResult);
                     this.collisions.insert(c);
@@ -121,11 +120,13 @@ class CollisionResolver {
     // Find collisions for one model (a) against all other models that have
     // been registered.
     _updateTrackedModelCollisions(a) {
-        for (b of this.trackedModels) {
+        a.emptyCollisionList();
+
+        for (let b of this.trackedModels) {
             if (a === b) continue;
 
              const collisionResult =
-                checkModelCollision(a.physicsModel, b.physicsModel);
+                CollisionResolver.checkModelCollision(a.physicsModel, b.physicsModel);
             if (collisionResult !== false) {
                 const c = new Collision(a, b, collisionResult);
                 this.collisions.insert(c);
@@ -138,18 +139,30 @@ class CollisionResolver {
     update(timeDelta) {
         this.collisions.clear();
 
-        _updateAllCollisions();
+        this._updateAllCollisions();
+
+        let i = 0;
 
         // Action collisions
         let collision = this.collisions.pop();
         while (collision) {
+            if (i > 100) {
+                // A guard in case we get stuck in a loop.
+                console.log('aborting collision detection');
+                return;
+            }
+
             const timeLeft = 1.0 - collision.time;
+            console.log(timeLeft);
+            if (timeLeft <= 0.0) return;
+
             collision.updatePhysics(timeLeft);
 
             // remove all other collisions for A and B from priority queue.
             // Those ones will never happen now that A and B are on a different
             // trajectory.
-            collision.a.collisionList.forEach(e => this.collisions.remove(e));
+            console.log(collision.a.collisionList.length);
+            collision.a.collisionList.forEach(e => {console.log('removing'); this.collisions.remove(e)});
             collision.b.collisionList.forEach(e => this.collisions.remove(e));
 
             // A and B have moved, but nothing else has.
@@ -160,8 +173,8 @@ class CollisionResolver {
             // as the first instance will be resolved, then the second will
             // be discarded. But it might be nice to not have the duplicate at
             // all if at all possible. 
-            _updateTrackedModelCollisions(collision.a);
-            _updateTrackedModelCollisions(collision.b);
+            this._updateTrackedModelCollisions(collision.a);
+            this._updateTrackedModelCollisions(collision.b);
 
             // Now the PriorityQueue is likely to have totally changed.
             // But we keep working our way through until it is empty.
@@ -212,18 +225,18 @@ class CollisionResolver {
     }
 
     static checkLineCollision(a, line) {
-        const intersectPoint = a.model.motion.intersects(line);
+        const intersectPoint = a.physicsModel.motion.intersects(line);
         
         if (intersectPoint === false) return false;
 
         const vTravel =
             vector2dFromPoints(
-                a.model.motion.position,
+                a.physicsModel.motion.position,
                 intersectPoint
             );
 
         // Return the offset along the vector that the collision occured at.
         // Will be in the range 0..1
-        return vTravel.length / a.model.motion.length; 
+        return vTravel.length / a.physicsModel.motion.length; 
     }
 }
