@@ -38,6 +38,8 @@ class Vector2d {
     }
 
     set x(value) {
+        if (value === undefined || isNaN(value))
+            throw 'value is invalid.';
         this._x = value;
     }
 
@@ -46,6 +48,8 @@ class Vector2d {
     }
 
     set y(value) {
+        if (value === undefined || isNaN(value))
+            throw 'value is invalid.';
         this._y = value;
     }
 
@@ -155,6 +159,10 @@ class PositionVector {
     constructor(posX, posY, vectorX, vectorY) {
         this.position = new Point(posX, posY);
         this.vector = new Vector2d(vectorX, vectorY);
+    }
+
+    copy() {
+        return new PositionVector(this.position.x, this.position.y, this.vector.x, this.vector.y);
     }
 
     startPoint() {
