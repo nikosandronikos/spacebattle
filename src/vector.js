@@ -124,7 +124,7 @@ class Vector2d {
     }
 }
 
-function vector2d_from_angle(thetaDegrees, length=1) {
+function vector2dFromAngle(thetaDegrees, length=1) {
     const thetaRadians = thetaDegrees * (Math.PI / 180);
     const v = new Vector2d(
         length * Math.cos(thetaRadians),
@@ -133,13 +133,13 @@ function vector2d_from_angle(thetaDegrees, length=1) {
     return v;
 }    
 
-function vector2d_sum(a, b) {
+function vector2dSum(a, b) {
     const r = new Vector2d(a.x, a.y);
     r.add(b);
     return r; 
 }
 
-function vector2d_difference(a, b) {
+function vector2dDifference(a, b) {
     const r = new Vector2d(a.x, a.y);
     r.subtract(b);
     return r; 
