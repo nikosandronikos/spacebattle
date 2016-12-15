@@ -12,8 +12,8 @@
 	function createBall(physicsSystem) {
 
 	    const ball = {
-	            renderObject: createRenderObject("randomColouredBall", 5),
-	            physicsObject: new PhysicsModel(physicsSystem, 5, 0.1, {x: Math.random() * 100, y: Math.random() * 100})
+	            renderObject: createRenderObject("randomColouredBall", 3),
+	            physicsObject: new PhysicsModel(physicsSystem, 3, 0.1, {x: Math.random() * 100, y: Math.random() * 100})
 	        };
 
 	    ball.physicsObject.addExternalForce(vector2dFromAngle(Math.random() * 360, 2), 1);
@@ -28,7 +28,7 @@
 
 			this.balls = [];
 
-			for (let i = 0; i < 5; i++) {
+			for (let i = 0; i < 10; i++) {
 				this.balls.push(createBall(this.physicsSystem));
 			}
 		}
