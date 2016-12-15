@@ -146,7 +146,7 @@ class CollisionResolver {
         // Action collisions
         let collision = this.collisions.pop();
         while (collision) {
-            if (i > 100) {
+            if (i++ > 100) {
                 // A guard in case we get stuck in a loop.
                 console.log('aborting collision detection');
                 return;
