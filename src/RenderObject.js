@@ -28,6 +28,14 @@ class RenderObject {
 function createRenderObject(assetName, size) {
     const boundRadius = size / 2;
     switch (assetName) {
+        case "randomColouredBall":
+            {
+                const domObject = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                domObject.setAttribute('r', size);
+                domObject.setAttribute('fill', 'red');
+                document.querySelector('#gameobjects').appendChild(domObject);
+                return new RenderObject(domObject);
+            }
         case "tri":
             {
                 const domObject = document.createElementNS('http://www.w3.org/2000/svg', 'path');
