@@ -42,8 +42,52 @@ class Collision {
     }
 
     updatePhysics() {
-        this.a.physicsModel.motion.vector.rotate(180);
-        this.b.physicsModel.motion.vector.rotate(180);
+        // This is going to depend on what objects are involved in the collision, but to
+        // start, this is between two physicsModels (which are treated as balls).
+
+        const   a = this.a.physicsModel,
+                b = this.b.physicsModel;
+        let     aMoved = a.motion.pointAt(this.time),
+                bMoved = b.motion.pointAt(this.time);
+
+        // 1. Find unit normal to the surfaces of the objects at the collision point
+        //    Also find tangent to unit normal.
+
+        // Normal vector is the difference between the coordinates of the centers of
+        // the circles.
+
+        let     unitNormal = vector2dFromPoints(aMoved, bMoved);
+        if (unitNormal.length == 0.0) {
+            aMoved = a.motion.startPoint();
+            bMoved = b.motion.startPoint();
+            unitNormal = vector2dFromPoints(aMoved, bMoved);
+            console.log('Had to fudge position for collision calculation.');
+            if (unitNormal.length == 0.0) {
+                throw 'Having trouble with this collision'
+                return;
+            }
+        }
+        unitNormal.normalise();
+
+        const   unitTangent = new Vector2d(-unitNormal.y, -unitNormal.x);
+
+        // Project velocity vectors onto unit normal and unit tangent vectors
+
+        const   velocityANormal = unitNormal.dot(a.motion.vector),
+                velocityATangent = unitTangent.dot(a.motion.vector),
+                velocityBNormal = unitNormal.dot(b.motion.vector),
+                velocityBTangent = unitTangent.dot(b.motion.vector);
+
+        // Find the new normal velocities
+        const   newVA = (velocityANormal * (a.mass - b.mass) + 2 * b.mass * velocityBNormal) / (a.mass + b.mass),
+                newVB = (velocityBNormal * (b.mass - a.mass) + 2 * a.mass * velocityANormal) / (a.mass + b.mass);
+
+        // convert the scalar normal and tangential velocities into vectors.
+        const   newAVector = unitNormal.copy().multiply(newVA).add(unitTangent.copy().multiply(velocityATangent)),
+                newBVector = unitNormal.copy().multiply(newVB).add(unitTangent.copy().multiply(velocityBTangent));
+
+        a.motion.vector = newAVector;
+        b.motion.vector = newBVector;
     }
 
     _resolveLine() {
@@ -153,7 +197,6 @@ class CollisionResolver {
             }
 
             const timeLeft = 1.0 - collision.time;
-            console.log(timeLeft);
             if (timeLeft <= 0.0) return;
 
             collision.updatePhysics(timeLeft);
@@ -161,8 +204,7 @@ class CollisionResolver {
             // remove all other collisions for A and B from priority queue.
             // Those ones will never happen now that A and B are on a different
             // trajectory.
-            console.log(collision.a.collisionList.length);
-            collision.a.collisionList.forEach(e => {console.log('removing'); this.collisions.remove(e)});
+            collision.a.collisionList.forEach(e => this.collisions.remove(e));
             collision.b.collisionList.forEach(e => this.collisions.remove(e));
 
             // A and B have moved, but nothing else has.
