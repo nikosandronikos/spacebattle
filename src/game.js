@@ -21,6 +21,7 @@ class Game {
     }
 
     run() {
+        window.requestAnimationFrame(this.gameloop.bind(this));
     }
 
     end() {
