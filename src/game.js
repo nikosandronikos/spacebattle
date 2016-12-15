@@ -18,6 +18,8 @@ class Game {
 
         // world
         this.physicsSystem = new PhysicsSystem({minX: 0, minY:0, maxX:100, maxY:100});
+
+        this.abort = false;
     }
 
     run() {
@@ -34,6 +36,8 @@ class Game {
     }
 
     gameloop(time) {
+        if (this.abort) return;
+
         const timeSinceStart = time - this.startTime;
 
         if (timeSinceStart <= 60000) {
@@ -50,25 +54,32 @@ class Game {
         const frameTime = time - this.lastTime;
         this.lastTime = time;
 
-        let loops = 0;
-        while (performance.now() > this.physicsFrameTimeAccumulator && loops < this.framesBeforeDrop) {
-            // using a frameTime less than the full physicsFrameTime to get the 
-            // hands behaving properly when an absurdly low physics fps is set.
-            // Wouldn't bother in a proper game loop with a high physics fps.
-            this.update(this.physicsFrameTime);
-            this.physicsFrameTimeAccumulator += this.physicsFrameTime;
-            loops ++;
-        }
+        try {
+            let loops = 0;
+            while (performance.now() > this.physicsFrameTimeAccumulator && loops < this.framesBeforeDrop) {
+                // using a frameTime less than the full physicsFrameTime to get the 
+                // hands behaving properly when an absurdly low physics fps is set.
+                // Wouldn't bother in a proper game loop with a high physics fps.
+                this.update(this.physicsFrameTime);
+                this.physicsFrameTimeAccumulator += this.physicsFrameTime;
+                loops ++;
+            }
 
-        // Log some performanc metrics
-        if (loops === 0) this.skippedUpdates++;
-        else if (loops > 1) {
-            this.multiUpdates++;
-            if (loops > this.maxMultiUpdate) this.maxMultiUpdate = loops;
-        }
+            // Log some performanc metrics
+            if (loops === 0) this.skippedUpdates++;
+            else if (loops > 1) {
+                this.multiUpdates++;
+                if (loops > this.maxMultiUpdate) this.maxMultiUpdate = loops;
+            }
 
-        // Run rendering update, pass the interpolate value, which indicates
-        // (using a value between 0 and 1) how far between physics updates we are.
-        this.render((performance.now() + this.physicsFrameTime - this.physicsFrameTimeAccumulator) / this.physicsFrameTime);
+            // Run rendering update, pass the interpolate value, which indicates
+            // (using a value between 0 and 1) how far between physics updates we are.
+            this.render((performance.now() + this.physicsFrameTime - this.physicsFrameTimeAccumulator) / this.physicsFrameTime);
+        } catch(exception) {
+            // Next rAF already registered. We need to make sure it doesn't do anything.
+            console.error('Bailing out!');
+            this.abort = true;
+            throw exception;;
+        }
     }
 }
