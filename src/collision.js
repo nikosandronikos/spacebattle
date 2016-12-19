@@ -5,18 +5,8 @@ class TrackedModel {
         // Contains all objects that collide with this object, not including
         // the first collision, which is stored in the Collision object.
         this.collisionList = [];
-
-        // The first collision this model is involved in. This is the one that
-        // has an effect and is stored in the PriorityQueue of the
-        // CollisionResolver.
-        this.firstCollision = null;
     }
   
-    useCollision(time) {
-        // FIXME: Stop ignoring three way collisions.
-        return (this.firstCollision === null || this.firstCollision > time);
-    }
- 
     addCollision(c) {
         this.collisionList.push(c);
     }
@@ -69,25 +59,31 @@ class Collision {
         }
         unitNormal.normalise();
 
-        const   unitTangent = new Vector2d(-unitNormal.y, -unitNormal.x);
+        const   unitTangent = new Vector2d(-unitNormal.y, unitNormal.x);
 
         // Project velocity vectors onto unit normal and unit tangent vectors
 
-        const   velocityANormal = unitNormal.dot(a.motion.vector),
-                velocityATangent = unitTangent.dot(a.motion.vector),
-                velocityBNormal = unitNormal.dot(b.motion.vector),
-                velocityBTangent = unitTangent.dot(b.motion.vector);
+        const   velocityANormal     = unitNormal.dot(a.motion.vector),
+                velocityATangent    = unitTangent.dot(a.motion.vector),
+                velocityBNormal     = unitNormal.dot(b.motion.vector),
+                velocityBTangent    = unitTangent.dot(b.motion.vector);
 
         // Find the new normal velocities
         const   newVA = (velocityANormal * (a.mass - b.mass) + 2 * b.mass * velocityBNormal) / (a.mass + b.mass),
                 newVB = (velocityBNormal * (b.mass - a.mass) + 2 * a.mass * velocityANormal) / (a.mass + b.mass);
 
+        const   v_v1nPrime = unitNormal.copy().multiply(newVA),
+                v_v1tPrime = unitTangent.copy().multiply(velocityATangent),
+                v_v2nPrime = unitNormal.copy().multiply(newVB),
+                v_v2tPrime = unitTangent.copy().multiply(velocityBTangent);
+
         // convert the scalar normal and tangential velocities into vectors.
         const   newAVector = unitNormal.copy().multiply(newVA).add(unitTangent.copy().multiply(velocityATangent)),
                 newBVector = unitNormal.copy().multiply(newVB).add(unitTangent.copy().multiply(velocityBTangent));
 
-        a.motion.vector = newAVector;
-        b.motion.vector = newBVector;
+        const remainingTime = 1 - this.time;
+        a.motion.vector = newAVector.multiply(remainingTime);
+        b.motion.vector = newBVector.multiply(remainingTime);
     }
 
     _resolveLine() {
@@ -259,7 +255,7 @@ class CollisionResolver {
             const bPoint = b.motion.pointAt(p);
 
             if (aPoint.distanceTo(bPoint) < combinedBounds) {
-                return step;
+                return p;
             }
         }
 
