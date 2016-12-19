@@ -25,6 +25,9 @@ class RenderObject {
     } 
 }
 
+const colours = ['blue', 'red', 'green', 'pink', 'cyan', 'white', 'purple', 'hotpink', 'lime', 'mediumvioletred'];
+currentColour = 0;
+
 function createRenderObject(assetName, size) {
     const boundRadius = size / 2;
     switch (assetName) {
@@ -32,7 +35,8 @@ function createRenderObject(assetName, size) {
             {
                 const domObject = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                 domObject.setAttribute('r', size);
-                domObject.setAttribute('fill', 'red');
+                console.log(colours[currentColour]);
+                domObject.setAttribute('fill', colours[currentColour++ % 10]);
                 document.querySelector('#gameobjects').appendChild(domObject);
                 return new RenderObject(domObject);
             }
