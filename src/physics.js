@@ -141,6 +141,10 @@ class PhysicsModel extends Hashable {
 
     move() {
         const worlddim = this.system.dimensions;
+
+        if (this.motion.vector.length > maxSpeed)
+            this.motion.vector.normalise().multiply(maxSpeed);
+
         this.motion.position.translate(this.motion.vector);
         if (this.motion.position.x < worlddim.x1 || this.motion.position.x > worlddim.x2)
             this.motion.position.x = mod(this.motion.position.x, worlddim.width);
