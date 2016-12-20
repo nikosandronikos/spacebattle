@@ -40,12 +40,10 @@ class Collision {
         let     aMoved = a.motion.pointAt(this.time),
                 bMoved = b.motion.pointAt(this.time);
 
-        // 1. Find unit normal to the surfaces of the objects at the collision point
-        //    Also find tangent to unit normal.
+        // See http://vobarian.com/collisions/2dcollisions2.pdf for the maths.
 
-        // Normal vector is the difference between the coordinates of the centers of
-        // the circles.
-
+        // Find unit normal to the surfaces of the objects at the collision point.
+        // Also find tangent to unit normal.
         let     unitNormal = vector2dFromPoints(aMoved, bMoved);
         if (unitNormal.length == 0.0) {
             aMoved = a.motion.startPoint();
@@ -61,29 +59,29 @@ class Collision {
 
         const   unitTangent = new Vector2d(-unitNormal.y, unitNormal.x);
 
-        // Project velocity vectors onto unit normal and unit tangent vectors
-
+        // Project velocity vectors onto unit normal and unit tangent vectors.
         const   velocityANormal     = unitNormal.dot(a.motion.vector),
                 velocityATangent    = unitTangent.dot(a.motion.vector),
                 velocityBNormal     = unitNormal.dot(b.motion.vector),
                 velocityBTangent    = unitTangent.dot(b.motion.vector);
 
-        // Find the new normal velocities
+        // Find the new normal velocities.
         const   newVA = (velocityANormal * (a.mass - b.mass) + 2 * b.mass * velocityBNormal) / (a.mass + b.mass),
                 newVB = (velocityBNormal * (b.mass - a.mass) + 2 * a.mass * velocityANormal) / (a.mass + b.mass);
-
-        const   v_v1nPrime = unitNormal.copy().multiply(newVA),
-                v_v1tPrime = unitTangent.copy().multiply(velocityATangent),
-                v_v2nPrime = unitNormal.copy().multiply(newVB),
-                v_v2tPrime = unitTangent.copy().multiply(velocityBTangent);
 
         // convert the scalar normal and tangential velocities into vectors.
         const   newAVector = unitNormal.copy().multiply(newVA).add(unitTangent.copy().multiply(velocityATangent)),
                 newBVector = unitNormal.copy().multiply(newVB).add(unitTangent.copy().multiply(velocityBTangent));
 
         const remainingTime = 1 - this.time;
-        a.motion.vector = newAVector.multiply(remainingTime);
-        b.motion.vector = newBVector.multiply(remainingTime);
+
+        a.motion.position = aMoved;
+        a.motion.vector = newAVector;
+        a.motion.time = remainingTime;
+
+        b.motion.position = bMoved;
+        b.motion.vector = newBVector;
+        b.motion.time = remainingTime;
     }
 
     _resolveLine() {
@@ -118,7 +116,6 @@ class CollisionResolver {
 
     registerPhysicsModel(physicsModel) {
         const tracker = new TrackedModel(physicsModel);
-        console.log(`CollisionResolver now tracking ${physicsModel.toString()}`);
         this.trackedModels.push(tracker);
         return tracker;
     }
@@ -186,7 +183,7 @@ class CollisionResolver {
         // Action collisions
         let collision = this.collisions.pop();
         while (collision) {
-            if (i++ > 100) {
+            if (i++ > 200) {
                 // A guard in case we get stuck in a loop.
                 console.log('aborting collision detection');
                 return;
@@ -209,8 +206,7 @@ class CollisionResolver {
             // FIXME: This will currently result in a duplicate collision for
             // A and B (if they do indeed collide). This shouldn't be a problem
             // as the first instance will be resolved, then the second will
-            // be discarded. But it might be nice to not have the duplicate at
-            // all if at all possible. 
+            // be discarded. But it might be nice to not have the duplicate at all.
             this._updateTrackedModelCollisions(collision.a);
             this._updateTrackedModelCollisions(collision.b);
 
@@ -246,16 +242,32 @@ class CollisionResolver {
 
         // Work out exactly where during the time step the collision occurred.
         // This will guide how much motion to apply after the collision.
-        const steps = 4;
-        const step = 1 / (steps - 1)
-        const combinedBounds = a.boundingCircleR + b.boundingCircleR;
+        const   aVelocity = a.motion.vector,
+                bVelocity = b.motion.vector;
 
-        for (let i = 0, p = 0; i < steps; i++, p += step) {
-            const aPoint = a.motion.pointAt(p);
-            const bPoint = b.motion.pointAt(p);
+        const qa =
+            Math.pow(bVelocity.x - aVelocity.x, 2) +
+            Math.pow(bVelocity.y - aVelocity.y, 2);
 
-            if (aPoint.distanceTo(bPoint) < combinedBounds) {
-                return p;
+        if (qa != 0.0) {
+            const qb =
+                2.0 *
+                (
+                    (bPos.x - aPos.x) * (bVelocity.x - aVelocity.x)
+                    +
+                    (bPos.y - aPos.y) * (bVelocity.y - aVelocity.y)
+                );
+
+            const qc =
+                Math.pow(bPos.x - aPos.x, 2) +
+                Math.pow(bPos.y - aPos.y, 2) -
+                Math.pow(a.boundingCircleR + b.boundingCircleR, 2);
+
+            const det = Math.pow(qb, 2) - 4 * qa * qc;
+
+            const t = (-qb - Math.sqrt(det)) / (2.0 * qa);
+            if (t >= 0.0 && t <= 1.0) {
+                return t;
             }
         }
 

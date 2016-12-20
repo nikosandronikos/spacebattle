@@ -92,11 +92,23 @@ class Thruster {
     }
 }
 
+class MotionTracker extends PositionVector {
+    constructor(x, y) {
+        // Tracks position and velocity via PositionVector.
+        super(x, y);
+
+        // Also tracks what portion of a timeslice this motion
+        // accounts for - as due to collisions a model may have 
+        // multiple changes of trajectory.
+        this.time = 1.0;
+    }
+}
+
 class PhysicsModel extends Hashable {
     constructor(system, boundingCircleR, mass, position) {
         super();
         this.system = system;
-        this.motion = new PositionVector(position.x, position.y);
+        this.motion = new MotionTracker(position.x, position.y);
         this.boundingCircleR = boundingCircleR;
         this.mass = mass;
         this.thrusters = [];
@@ -137,6 +149,8 @@ class PhysicsModel extends Hashable {
         if (this.motion.vector.length > maxSpeed) {
             this.motion.vector.normalise().multiply(maxSpeed);
         }
+
+        this.motion.time = 1.0;
     }
 
     move() {
@@ -145,7 +159,7 @@ class PhysicsModel extends Hashable {
         if (this.motion.vector.length > maxSpeed)
             this.motion.vector.normalise().multiply(maxSpeed);
 
-        this.motion.position.translate(this.motion.vector);
+        this.motion.position.translate(this.motion.vector.copy().multiply(this.motion.time));
         if (this.motion.position.x < worlddim.x1 || this.motion.position.x > worlddim.x2)
             this.motion.position.x = mod(this.motion.position.x, worlddim.width);
         if (this.motion.position.y < worlddim.y1 || this.motion.position.y > worlddim.y2)
