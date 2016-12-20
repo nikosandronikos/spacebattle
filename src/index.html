@@ -3,10 +3,19 @@
 <title>Space Battle</title>
 <script src="input.js"></script>
 <script src="vector.js"></script>
+<script src="priorityqueue.js"></script>
+<script src="collision.js"></script>
 <script src="physics.js"></script>
 <script src="RenderObject.js"></script>
 <script src="gameobject.js"></script>
 <script src="game.js"></script>
+<script src="spacegame.js"></script>
+<script>
+	window.onload = function() {
+	    const game = new SpaceGame();
+	    game.run();
+	}
+</script>
 <style>
 svg {height: 95vh;}
 </style>
