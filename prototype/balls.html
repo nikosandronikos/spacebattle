@@ -9,46 +9,46 @@
 <script src="../src/RenderObject.js"></script>
 <script src="../src/game.js"></script>
 <script>
-	function createBall(physicsSystem) {
+    function createBall(physicsSystem) {
 
-	    const ball = {
-	            renderObject: createRenderObject("randomColouredBall", 3),
-	            physicsObject: new PhysicsModel(physicsSystem, 3, 0.1, {x: Math.random() * 100, y: Math.random() * 100})
-	        };
+        const ball = {
+                renderObject: createRenderObject("randomColouredBall", 3),
+                physicsObject: new PhysicsModel(physicsSystem, 3, 0.1, {x: Math.random() * 100, y: Math.random() * 100})
+            };
 
-	    ball.physicsObject.addExternalForce(vector2dFromAngle(Math.random() * 360, 2), 1);
-	    physicsSystem.add(ball.physicsObject);
-	 
-	    return ball;
-	}
+        ball.physicsObject.addExternalForce(vector2dFromAngle(Math.random() * 360, 2), 1);
+        physicsSystem.add(ball.physicsObject);
+     
+        return ball;
+    }
 
-	class BallGame extends Game {
-		constructor() {
-			super();
+    class BallGame extends Game {
+        constructor() {
+            super();
 
-			this.balls = [];
+            this.balls = [];
 
-			for (let i = 0; i < 10; i++) {
-				this.balls.push(createBall(this.physicsSystem));
-			}
-		}
-	
-	    update(time) {
-	        this.physicsSystem.update(this.physicsFrameTime);
-	    }
+            for (let i = 0; i < 10; i++) {
+                this.balls.push(createBall(this.physicsSystem));
+            }
+        }
+    
+        update(time) {
+            this.physicsSystem.update(this.physicsFrameTime);
+        }
 
-	    render(interoplate) {
-	        for (let ball of this.balls) {
-	            ball.renderObject.rotate(ball.physicsObject.rotateAngle);
-	            ball.renderObject.moveTo(ball.physicsObject.position.x, ball.physicsObject.position.y);
-	        }
-	    }
-	}
+        render(interoplate) {
+            for (let ball of this.balls) {
+                ball.renderObject.rotate(ball.physicsObject.rotateAngle);
+                ball.renderObject.moveTo(ball.physicsObject.position.x, ball.physicsObject.position.y);
+            }
+        }
+    }
 
-	window.onload = function() {
-	    const game = new BallGame();
-	    game.run();
-	}
+    window.onload = function() {
+        const game = new BallGame();
+        game.run();
+    }
 </script>
 <style>
 svg {height: 95vh;}
