@@ -42,8 +42,8 @@ function createRenderObject(assetName, size) {
         case "tri":
             {
                 const domObject = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                const p1 = vector2d_from_angle(135, boundRadius);
-                const p2 = vector2d_from_angle(135+90, boundRadius);
+                const p1 = vector2dFromAngle(135, boundRadius);
+                const p2 = vector2dFromAngle(135+90, boundRadius);
                 domObject.setAttribute('d', `M${boundRadius},0 L${p1.x},${p1.y} ${p2.x},${p2.y} z`);
                 domObject.setAttribute('fill', 'red');
                 document.querySelector('#gameobjects').appendChild(domObject);

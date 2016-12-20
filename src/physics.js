@@ -76,7 +76,7 @@ class PhysicsSystem {
 
 class Thruster {
     constructor(power, angle) {
-        this._thrustVector = vector2d_from_angle(angle, power);
+        this._thrustVector = vector2dFromAngle(angle, power);
         this.isFiring = false;
     }
 
