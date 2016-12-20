@@ -35,7 +35,6 @@ function createRenderObject(assetName, size) {
             {
                 const domObject = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                 domObject.setAttribute('r', size);
-                console.log(colours[currentColour]);
                 domObject.setAttribute('fill', colours[currentColour++ % 10]);
                 document.querySelector('#gameobjects').appendChild(domObject);
                 return new RenderObject(domObject);
