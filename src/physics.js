@@ -49,6 +49,8 @@ class PhysicsSystem {
                 new Point(dimensions.minX, dimensions.minY)
             )
         ];
+
+        this.boundaries.forEach(line => this.collisionResolver.registerLine(line));
     }
 
     dimensions(minX, minY, maxX, maxY) {
