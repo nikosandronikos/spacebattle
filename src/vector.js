@@ -193,7 +193,7 @@ class PositionVector {
                 x2 = this.position.x + this.vector.x,
                 y2 = this.position.y + this.vector.y,
                 x3 = other.position.x,
-                y3 = other.position.y
+                y3 = other.position.y,
                 x4 = other.position.x + other.vector.x,
                 y4 = other.position.y + other.vector.y;
 
