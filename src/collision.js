@@ -237,9 +237,6 @@ class CollisionResolver {
             const timeLeft = 1.0 - collision.time;
             if (timeLeft <= 0.0) return;
 
-            // FIXME: Currently not handling second collisions correctly I don't think
-            // Is remaining time taken into account?
-
             const moved = collision.resolve();
 
             // remove all other collisions for A and B from priority queue.
