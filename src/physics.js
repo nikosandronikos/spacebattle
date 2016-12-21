@@ -93,9 +93,12 @@ class Thruster {
 }
 
 class MotionTracker extends PositionVector {
-    constructor(x, y) {
+    constructor(position, vector=null) {
         // Tracks position and velocity via PositionVector.
-        super(x, y);
+        if (vector !== null)
+            super(position.x, position.y, vector.x, vector.y);
+        else
+            super(position.x, position.y);
 
         // Also tracks what portion of a timeslice this motion
         // accounts for - as due to collisions a model may have 
@@ -108,7 +111,7 @@ class PhysicsModel extends Hashable {
     constructor(system, boundingCircleR, mass, position) {
         super();
         this.system = system;
-        this.motion = new MotionTracker(position.x, position.y);
+        this.motion = new MotionTracker(position);
         this.boundingCircleR = boundingCircleR;
         this.mass = mass;
         this.thrusters = [];
