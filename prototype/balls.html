@@ -10,16 +10,29 @@
 <script src="../src/game.js"></script>
 <script>
     function createBall(physicsSystem) {
-
+        const size = Math.random() * 3 + 1;
         const ball = {
-                renderObject: createRenderObject("randomColouredBall", 3),
-                physicsObject: new PhysicsModel(physicsSystem, 3, 0.1, {x: Math.random() * 100, y: Math.random() * 100})
+                renderObject: createRenderObject("randomColouredBall", size),
+                physicsObject: new PhysicsModel(physicsSystem, size, size * 4, {x: Math.random() * 100, y: Math.random() * 100})
             };
 
-        ball.physicsObject.addExternalForce(vector2dFromAngle(Math.random() * 360, 2), 1);
+        ball.physicsObject.addExternalForce(vector2dFromAngle(Math.random() * 360, size * 4 * 8), 1);
         physicsSystem.add(ball.physicsObject);
-     
+
         return ball;
+    }
+
+    function createPlanet(physicsSystem) {
+        const size = 5;
+        const planet = {
+                renderObject: createRenderObject("randomColouredBall", size),
+                physicsObject: new PhysicsModel(physicsSystem, size, 1000, {x: 50, y: 50})
+            };
+
+        planet.physicsObject.addExternalForce(vector2dFromAngle(Math.random() * 360, size * 4 * 4), 1);
+        physicsSystem.add(planet.physicsObject);
+
+        return planet;
     }
 
     class BallGame extends Game {
@@ -28,9 +41,11 @@
 
             this.balls = [];
 
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 15; i++) {
                 this.balls.push(createBall(this.physicsSystem));
             }
+
+            this.balls.push(createPlanet(this.physicsSystem));
         }
     
         update(time) {
