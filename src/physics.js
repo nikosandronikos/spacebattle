@@ -130,6 +130,8 @@ class PhysicsModel extends Hashable {
     update(timeDelta) {
         const forceVector = new Vector2d();
 
+        this.motion.time = 1.0;
+
         this.otherForce.forEach(e => {
             forceVector.add(e.vector);
             e.duration -= timeDelta;
@@ -139,6 +141,8 @@ class PhysicsModel extends Hashable {
         for (let thruster of this.thrusters) {
             forceVector.add(thruster.thrustVector)
         }
+
+            if (forceVector.length === 0) return;
 
         forceVector.divide(this.mass);
         forceVector.divide(1000 / timeDelta);
@@ -152,8 +156,6 @@ class PhysicsModel extends Hashable {
         if (this.motion.vector.length > maxSpeed) {
             this.motion.vector.normalise().multiply(maxSpeed);
         }
-
-        this.motion.time = 1.0;
     }
 
     move() {
