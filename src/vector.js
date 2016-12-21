@@ -156,7 +156,7 @@ function vector2dFromPoints(p1, p2) {
 /*********************************************************************/
 
 class PositionVector {
-    constructor(posX, posY, vectorX, vectorY) {
+    constructor(posX=0, posY=0, vectorX=0, vectorY=0) {
         this.position = new Point(posX, posY);
         this.vector = new Vector2d(vectorX, vectorY);
     }
