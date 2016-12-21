@@ -217,8 +217,6 @@ class PositionVector {
         if (r1 != 0 && r2 != 0 && Math.sign(r1) == Math.sign(r2))
             return false;
 
-        console.log('PositionVector::intersects - intersection detected');
-
         const denom = a1 * b2 - a2 * b1;
         if (denom == 0) {
             // Can't collide with the boundary while travelling colinearly
