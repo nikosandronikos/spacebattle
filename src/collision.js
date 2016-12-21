@@ -14,27 +14,29 @@ class TrackedModel {
     emptyCollisionList() {
         this.collisionList = [];
     }
- 
+
     toString() { return this.physicsModel.toString(); }
 }
 
-
-class Collision {
+class ModelCollision {
     constructor(trackerA, trackerB, time) {
         this.a = trackerA;
         this.b = trackerB;
         this.time = time;
-
-        if (trackerB.model instanceof PositionVector)
-            this.resolve = _resolveLine;
-        else if (trackerB.model instanceof PhysicsModel)
-            this.resolve = _resolveModel;
     }
 
-    updatePhysics() {
-        // This is going to depend on what objects are involved in the collision, but to
-        // start, this is between two physicsModels (which are treated as balls).
+    getConnectedCollisions() {
+        return [this.a.collisionList.concat(this.b.collisionList)];
+    }
 
+    clearConnectedCollisions() {
+        this.a.emptyCollisionList();
+        this.b.emptyCollisionList();
+    }
+
+    // returns an array of all objects affected by the resolution - those that 
+    // need collisions to be recalculated for them.
+    resolve() {
         const   a = this.a.physicsModel,
                 b = this.b.physicsModel;
         let     aMoved = a.motion.pointAt(this.time),
@@ -82,17 +84,43 @@ class Collision {
         b.motion.position = bMoved;
         b.motion.vector = newBVector;
         b.motion.time = remainingTime;
+
+        return [this.a, this.b];
+    }
+}
+
+class LineCollision {
+    constructor(trackerA, line, time) {
+        this.a = trackerA;
+        this.line = line;
+        this.time = time;
     }
 
-    _resolveLine() {
-        // for now, let's bounce off the vector
-        
-        // update this.a.motion.vector to reflect the effect of the
-        // collision
+    getConnectedCollisions() {
+        return this.a.collisionList;
     }
 
-    _resolveModel() {
+    clearConnectedCollisions() {
+        this.a.emptyCollisionList();
     }
+
+    get b() {
+        throw 'wrong type of collision';
+    }
+
+    resolve() {
+        return [this.a];
+    }
+}
+
+function createCollision(a, b, time) {
+    if (b instanceof PositionVector){
+        return new LineCollision(a, b, time);
+    } else if (b instanceof TrackedModel) {
+        return new ModelCollision(a, b, time);
+    }
+
+    throw 'Unsupported type.'
 }
 
 
@@ -114,6 +142,10 @@ class CollisionResolver {
 
     }
 
+    registerLine(line) {
+        this.lines.push(line);
+    }
+
     registerPhysicsModel(physicsModel) {
         const tracker = new TrackedModel(physicsModel);
         this.trackedModels.push(tracker);
@@ -122,11 +154,6 @@ class CollisionResolver {
 
     // Find collisions between all registered objects.
     _updateAllCollisions() {
-        // FIXME: Need to incorporate collision checking with the
-        // boundary of the space
-        for (line of this.lines) {
-        }
-
         this._updateCollisions(this.trackedModels);
     }
 
@@ -140,12 +167,15 @@ class CollisionResolver {
 
         for (let i = 0; i < this.trackedModels.length; i++) {
             const a = this.trackedModels[i];
+
+            this._checkLineCollisionsForModel(a);
+
             for (let j = i + 1; j < this.trackedModels.length; j++) {
                 const b = this.trackedModels[j];
                 const collisionResult =
                     CollisionResolver.checkModelCollision(a.physicsModel, b.physicsModel);
                 if (collisionResult !== false) {
-                    const c = new Collision(a, b, collisionResult);
+                    const c = createCollision(a, b, collisionResult);
                     this.collisions.insert(c);
                     a.addCollision(c);
                     b.addCollision(c);
@@ -158,6 +188,7 @@ class CollisionResolver {
     // been registered.
     _updateTrackedModelCollisions(a) {
         a.emptyCollisionList();
+        this._checkLineCollisionsForModel(a);
 
         for (let b of this.trackedModels) {
             if (a === b) continue;
@@ -165,10 +196,24 @@ class CollisionResolver {
              const collisionResult =
                 CollisionResolver.checkModelCollision(a.physicsModel, b.physicsModel);
             if (collisionResult !== false) {
-                const c = new Collision(a, b, collisionResult);
+                const c = createCollision(a, b, collisionResult);
                 this.collisions.insert(c);
                 a.addCollision(c);
                 b.addCollision(c);
+            }
+        }
+    }
+
+    _checkLineCollisionsForModel(a) {
+        if (!(a instanceof TrackedModel)) {
+            console.log('blergh');
+        }
+        for (let line of this.lines) {
+            const collisionResult = CollisionResolver.checkLineCollision(a.physicsModel, line);
+            if (collisionResult !== false) {
+                const c = createCollision(a, line, collisionResult);
+                this.collisions.insert(c);
+                a.addCollision(c);
             }
         }
     }
@@ -192,13 +237,15 @@ class CollisionResolver {
             const timeLeft = 1.0 - collision.time;
             if (timeLeft <= 0.0) return;
 
-            collision.updatePhysics(timeLeft);
+            // FIXME: Currently not handling second collisions correctly I don't think
+            // Is remaining time taken into account?
+
+            const moved = collision.resolve();
 
             // remove all other collisions for A and B from priority queue.
             // Those ones will never happen now that A and B are on a different
             // trajectory.
-            collision.a.collisionList.forEach(e => this.collisions.remove(e));
-            collision.b.collisionList.forEach(e => this.collisions.remove(e));
+            collision.getConnectedCollisions().forEach(e => this.collisions.remove(e))
 
             // A and B have moved, but nothing else has.
             // So test each of A and B against all other objects
@@ -207,8 +254,7 @@ class CollisionResolver {
             // A and B (if they do indeed collide). This shouldn't be a problem
             // as the first instance will be resolved, then the second will
             // be discarded. But it might be nice to not have the duplicate at all.
-            this._updateTrackedModelCollisions(collision.a);
-            this._updateTrackedModelCollisions(collision.b);
+            moved.forEach(e => this._updateTrackedModelCollisions(e));
 
             // Now the PriorityQueue is likely to have totally changed.
             // But we keep working our way through until it is empty.
@@ -275,18 +321,18 @@ class CollisionResolver {
     }
 
     static checkLineCollision(a, line) {
-        const intersectPoint = a.physicsModel.motion.intersects(line);
+        const intersectPoint = a.motion.intersects(line);
         
         if (intersectPoint === false) return false;
 
         const vTravel =
             vector2dFromPoints(
-                a.physicsModel.motion.position,
+                a.motion.position,
                 intersectPoint
             );
 
         // Return the offset along the vector that the collision occured at.
         // Will be in the range 0..1
-        return vTravel.length / a.physicsModel.motion.length; 
+        return vTravel.length / a.motion.length; 
     }
 }
