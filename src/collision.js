@@ -18,6 +18,18 @@ class TrackedModel {
     toString() { return this.physicsModel.toString(); }
 }
 
+/*
+An abstract class, specific collision classes need
+to implement this interface to avoid errors.
+
+class Collision {
+    constructor();
+    getConnectedCollisions();
+    clearConnectedCollisions();
+    resolve();
+}
+*/
+
 class ModelCollision {
     constructor(trackerA, trackerB, time) {
         this.a = trackerA;
@@ -102,10 +114,6 @@ class LineCollision {
 
     clearConnectedCollisions() {
         this.a.emptyCollisionList();
-    }
-
-    get b() {
-        throw 'wrong type of collision';
     }
 
     resolve() {
