@@ -27,6 +27,7 @@ class Game {
     }
 
     end() {
+        this.abort = true;
     }
 
     update(physicsFrameTime) {
@@ -42,7 +43,7 @@ class Game {
 
         if (timeSinceStart <= 60000) {
             // run for one minute
-            window.requestAnimationFrame(this.gameloop.bind(this));
+            this.rAFId = window.requestAnimationFrame(this.gameloop.bind(this));
         } else {
             console.log(`skipped updates (good) = ${this.skippedUpdates}`);
             console.log(`multi updates (bad) = ${this.multiUpdates}`);
@@ -75,11 +76,12 @@ class Game {
             // Run rendering update, pass the interpolate value, which indicates
             // (using a value between 0 and 1) how far between physics updates we are.
             this.render((performance.now() + this.physicsFrameTime - this.physicsFrameTimeAccumulator) / this.physicsFrameTime);
-        } catch(exception) {
+        } catch(e) {
             // Next rAF already registered. We need to make sure it doesn't do anything.
             console.error('Bailing out!');
+            window.cancelAnimationFrame(this.rAFId);
             this.abort = true;
-            throw exception;;
+            throw e;
         }
     }
 }
