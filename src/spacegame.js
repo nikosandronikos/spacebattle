@@ -61,11 +61,11 @@ class SpaceGame extends Game {
     run() {
         window.addEventListener('keydown', Keyboard.keydown_handler);
         window.addEventListener('keyup', Keyboard.keyup_handler);
-
-        window.requestAnimationFrame(this.gameloop.bind(this));
+        super.run();
     }
 
     end() {
+        super.end();
         window.removeEventListener('keydown', Keyboard.keydown_handler);
         window.removeEventListener('keyup', Keyboard.keyup_handler);
     }
