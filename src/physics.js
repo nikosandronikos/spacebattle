@@ -34,7 +34,7 @@ class PhysicsSystem {
         this.boundaries = [
             positionVectorFromPoints(
                 new Point(dimensions.minX, dimensions.minY),
-                new Point(dimensions.maxX, dimensions.maxY)
+                new Point(dimensions.maxX, dimensions.minY)
             ),
             positionVectorFromPoints(
                 new Point(dimensions.maxX, dimensions.minY),
