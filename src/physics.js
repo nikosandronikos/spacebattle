@@ -144,14 +144,13 @@ class PhysicsModel extends Hashable {
             forceVector.add(thruster.thrustVector)
         }
 
-            if (forceVector.length === 0) return;
+        this.rotateAngle += (this.rotateDirection/ (this.rotateRate / timeDelta));
+        forceVector.rotate(this.rotateAngle);
+
+        if (forceVector.length === 0) return;
 
         forceVector.divide(this.mass);
         forceVector.divide(1000 / timeDelta);
-
-        this.rotateAngle += (this.rotateDirection/ (this.rotateRate / timeDelta));
-
-        forceVector.rotate(this.rotateAngle);
 
         this.motion.vector.add(forceVector);
 
