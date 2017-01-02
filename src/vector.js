@@ -2,26 +2,43 @@
 
 class Point {
     constructor(x, y) {
-        this.x = x;
-        this.y = y;
+        this._x = x;
+        this._y = y;
+    }
+
+    get x() {return this._x;}
+    get y() {return this._y;}
+
+    set x(v) {
+        if (isNaN(v)) {
+            throw new Error('x being set to NaN');
+        }
+        this._x = v;
+    }
+
+    set y(v) {
+        if (isNaN(v)) {
+            throw new Error('y being set to NaN');
+        }
+        this._y = v;
     }
 
     distanceTo(p2) {
-        const x = p2.x - this.x;
-        const y = p2.y - this.y;
+        const x = p2.x - this._x;
+        const y = p2.y - this._y;
         return Math.sqrt(x * x + y * y);
     }
 
     // Translate by something that has co-ordinates (e.g. another point, or
     // a vector.
     translate(coord) {
-        this.x += coord.x;
-        this.y += coord.y;
+        this._x += coord.x;
+        this._y += coord.y;
         return this;
     }
 
     copy() {
-        return new Point(this.x, this.y);
+        return new Point(this._x, this._y);
     }
 }
 
