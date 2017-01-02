@@ -50,7 +50,7 @@ class PhysicsSystem {
             )
         ];
 
-        this.boundaries.forEach(line => this.collisionResolver.registerLine(line));
+        this.boundaries.forEach(line => this.collisionResolver.registerBoundary(line));
     }
 
     dimensions(minX, minY, maxX, maxY) {
@@ -167,10 +167,6 @@ class PhysicsModel extends Hashable {
             this.motion.vector.normalise().multiply(maxSpeed);
 
         this.motion.position.translate(this.motion.vector.copy().multiply(this.motion.time));
-        if (this.motion.position.x < worlddim.x1 || this.motion.position.x > worlddim.x2)
-            this.motion.position.x = mod(this.motion.position.x, worlddim.width);
-        if (this.motion.position.y < worlddim.y1 || this.motion.position.y > worlddim.y2)
-            this.motion.position.y = mod(this.motion.position.y, worlddim.height);
     }
 
     stop() {

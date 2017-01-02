@@ -101,7 +101,11 @@ class ModelCollision {
     }
 }
 
-class LineCollision {
+class BoundaryCollision {
+    // This isn't a general line collision teleporter, though it could have been.
+    // Decided not to do that because the teleporter will likely have some subtle
+    // differences so I'm keeping this as fast and specialised as possible.
+
     constructor(trackerA, line, time) {
         this.a = trackerA;
         this.line = line;
@@ -117,13 +121,49 @@ class LineCollision {
     }
 
     resolve() {
+        const a = this.a.physicsModel;
+        const collisionPoint = a.motion.pointAt(this.time);
+        const endPoint = a.motion.endPoint();
+        const newP = new Point(0,0);
+        const sysDim = a.system.dimensions;
+
+        if (this.line.vector.y == 0) {
+            // horizontal boundary
+            newP.x = collisionPoint.x;
+            if (endPoint.y >= this.line.position.y) {
+                // passing 'upwards' through the line
+                newP.y = sysDim.y1 + BoundaryCollision.passThroughOffset;
+            } else if (endPoint.y <= this.line.position.y) {
+                newP.y =  sysDim.y2 - BoundaryCollision.passThroughOffset;
+            } else {
+                throw 'Do not seem to be passing through a horizontal boundary';
+            }
+        } else if (this.line.vector.x == 0) {
+            // vertical boundary
+            newP.y = collisionPoint.y;
+            if (endPoint.x >= this.line.position.x) {
+                newP.x = sysDim.x1 + BoundaryCollision.passThroughOffset;
+            } else if (endPoint.x <= this.line.position.x) {
+                newP.x = sysDim.x2 - BoundaryCollision.passThroughOffset;
+            } else {
+                throw 'Do not seem to be passing through a vertical boundary';
+            }
+        } else {
+            throw 'Not a horizontal or vertical line.'
+        }
+
+        a.motion.position = newP;
+        a.motion.time = 1 - this.time;
+
         return [this.a];
     }
 }
 
+BoundaryCollision.passThroughOffset = 0.001;
+
 function createCollision(a, b, time) {
     if (b instanceof PositionVector){
-        return new LineCollision(a, b, time);
+        return new BoundaryCollision(a, b, time);
     } else if (b instanceof TrackedModel) {
         return new ModelCollision(a, b, time);
     }
@@ -143,15 +183,12 @@ class CollisionResolver {
         // order.
         this.collisions = new PriorityQueue((a, b) => a.time < b.time);
 
-        // Lines - the borders of the world at the moment.
-        // FIXME: Generalise this so it can support other things 
-        // (e.g. planets) once I've worked out details.
-        this.lines = [];
+        this.boundaryLines = [];
 
     }
 
-    registerLine(line) {
-        this.lines.push(line);
+    registerBoundary(boundaryPositionVector) {
+        this.boundaryLines.push(boundaryPositionVector);
     }
 
     registerPhysicsModel(physicsModel) {
@@ -176,7 +213,7 @@ class CollisionResolver {
         for (let i = 0; i < this.trackedModels.length; i++) {
             const a = this.trackedModels[i];
 
-            this._checkLineCollisionsForModel(a);
+            this._checkBoundaryCollisionsForModel(a);
 
             for (let j = i + 1; j < this.trackedModels.length; j++) {
                 const b = this.trackedModels[j];
@@ -196,7 +233,7 @@ class CollisionResolver {
     // been registered.
     _updateTrackedModelCollisions(a) {
         a.emptyCollisionList();
-        this._checkLineCollisionsForModel(a);
+        this._checkBoundaryCollisionsForModel(a);
 
         for (let b of this.trackedModels) {
             if (a === b) continue;
@@ -212,11 +249,11 @@ class CollisionResolver {
         }
     }
 
-    _checkLineCollisionsForModel(a) {
+    _checkBoundaryCollisionsForModel(a) {
         if (!(a instanceof TrackedModel)) {
             console.log('blergh');
         }
-        for (let line of this.lines) {
+        for (let line of this.boundaryLines) {
             const collisionResult = CollisionResolver.checkLineCollision(a.physicsModel, line);
             if (collisionResult !== false) {
                 const c = createCollision(a, line, collisionResult);
@@ -236,7 +273,7 @@ class CollisionResolver {
         // Action collisions
         let collision = this.collisions.pop();
         while (collision) {
-            if (i++ > 200) {
+            if (i++ > 100) {
                 // A guard in case we get stuck in a loop.
                 console.log('aborting collision detection');
                 return;
@@ -325,8 +362,8 @@ class CollisionResolver {
         return false;
     }
 
-    static checkLineCollision(a, line) {
-        const intersectPoint = a.motion.intersects(line);
+    static checkLineCollision(a, positionVector) {
+        const intersectPoint = a.motion.intersects(positionVector);
         
         if (intersectPoint === false) return false;
 
@@ -338,6 +375,6 @@ class CollisionResolver {
 
         // Return the offset along the vector that the collision occured at.
         // Will be in the range 0..1
-        return vTravel.length / a.motion.length; 
+        return vTravel.length / a.moveVector.length; 
     }
 }
