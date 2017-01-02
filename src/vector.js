@@ -256,7 +256,7 @@ class PositionVector {
 function positionVectorFromPoints(p1, p2) {
     return new PositionVector(
         p1.x, p1.y,
-        p2.x - p1.y, p2.y - p1.y
+        p2.x - p1.x, p2.y - p1.y
     );
 }
 
