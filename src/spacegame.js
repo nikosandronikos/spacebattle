@@ -89,6 +89,7 @@ class SpaceGame extends Game {
     changeMode(newMode) {
         switch (this.mode) {
             case 'start':
+            case 'pause':
             case 'end':
                 this.statusText.remove();
                 this.statusText = null;
@@ -104,6 +105,11 @@ class SpaceGame extends Game {
                 this.resetTiming();
                 this.nextRAF = this.gameloop;
                 break;
+            case 'pause':
+                Keyboard.ignoreUntilReleased(Keyboard.KEY_ESC);
+                this.nextRAF = this.pausedGameLoop
+                this.statusText = createRenderText('Paused.', 8).moveTo(40,50);
+                break;
             case 'end':
                 this.nextRAF = this.endGameLoop;
                 this.statusText = createRenderText('Game Over.', 8).moveTo(35,50);
@@ -115,7 +121,7 @@ class SpaceGame extends Game {
 
     gameloop(time) {
         if (Keyboard.pressed(Keyboard.KEY_ESC)) {
-            this.changeMode('end');
+            this.changeMode('pause');
             this.rAFId = window.requestAnimationFrame(this.nextRAF.bind(this));
             return;
         }
@@ -124,10 +130,22 @@ class SpaceGame extends Game {
 
     startGameLoop(time) {
         if (this.abort) return;
-        this.rAFId = window.requestAnimationFrame(this.nextRAF.bind(this));
         if (Keyboard.anyKeyDown()) {
             this.changeMode('run');
         }
+        this.rAFId = window.requestAnimationFrame(this.nextRAF.bind(this));
+    }
+
+    pausedGameLoop(time) {
+        if (this.abort) return;
+        if (Keyboard.pressed(Keyboard.KEY_ESC)) {
+            console.log('ending');
+            this.changeMode('end');
+        } else if (Keyboard.anyKeyDown()) {
+            console.log('running');
+            this.changeMode('run');
+        }
+        this.rAFId = window.requestAnimationFrame(this.nextRAF.bind(this));
     }
 
     endGameLoop(time) {
