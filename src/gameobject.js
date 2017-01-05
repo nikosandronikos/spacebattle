@@ -89,6 +89,7 @@ function createPlayerFromConfig(physicsSystem, config) {
             createRenderObject(render.asset, render.size),
             physicsObject
         );
+    player.renderObject.moveTo(config.physics.position.x, config.physics.position.y);
 
     for (let key in control) {
         switch (key) {
