@@ -56,6 +56,8 @@ class SpaceGame extends Game {
         for (let player of this.players) {
             this.physicsSystem.add(player.physicsObject);
         }
+
+        this.changeMode('start');
     }
 
     run() {
@@ -82,5 +84,57 @@ class SpaceGame extends Game {
             player.renderObject.rotate(player.physicsObject.rotateAngle);
             player.renderObject.moveTo(player.physicsObject.position.x, player.physicsObject.position.y);
         }
+    }
+
+    changeMode(newMode) {
+        switch (this.mode) {
+            case 'start':
+            case 'end':
+                this.statusText.remove();
+                this.statusText = null;
+                break;
+        }
+
+        switch (newMode) {
+            case 'start':
+                this.nextRAF = this.startGameLoop;
+                this.statusText = createRenderText('Get Ready...', 8).moveTo(30,50);
+                break;
+            case 'run':
+                this.resetTiming();
+                this.nextRAF = this.gameloop;
+                break;
+            case 'end':
+                this.nextRAF = this.endGameLoop;
+                this.statusText = createRenderText('Game Over.', 8).moveTo(35,50);
+                break;
+        }
+
+        this.mode = newMode;
+    }
+
+    gameloop(time) {
+        if (Keyboard.pressed(Keyboard.KEY_ESC)) {
+            this.changeMode('end');
+            this.rAFId = window.requestAnimationFrame(this.nextRAF.bind(this));
+            return;
+        }
+        super.gameloop(time);
+    }
+
+    startGameLoop(time) {
+        if (this.abort) return;
+        this.rAFId = window.requestAnimationFrame(this.nextRAF.bind(this));
+        if (Keyboard.anyKeyDown()) {
+            this.changeMode('run');
+        }
+    }
+
+    endGameLoop(time) {
+        // Will only run once.
+        console.log(`skipped updates (good) = ${this.skippedUpdates}`);
+        console.log(`multi updates (bad) = ${this.multiUpdates}`);
+        console.log(`max multi update = ${this.maxMultiUpdate}`);    
+        this.end();
     }
 }

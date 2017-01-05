@@ -7,9 +7,7 @@ class Game {
         this.physicsFrameTime = 1000 / this.physicsPerSecond;
         this.framesBeforeDrop = 5;
 
-        this.startTime = performance.now();
-        this.lastTime = this.startTime;
-        this.physicsFrameTimeAccumulator = this.startTime;
+        this.resetTiming();
 
         // Performance metrics
         this.skippedUpdates = 0;
@@ -19,11 +17,13 @@ class Game {
         // world
         this.physicsSystem = new PhysicsSystem({minX: 0, minY:0, maxX:100, maxY:100});
 
+        // Frame control
+        this.nextRAF = this.gameloop;
         this.abort = false;
     }
 
     run() {
-        window.requestAnimationFrame(this.gameloop.bind(this));
+        window.requestAnimationFrame(this.nextRAF.bind(this));
     }
 
     end() {
@@ -36,21 +36,18 @@ class Game {
     render(interpolate) {
     }
 
+    resetTiming() {
+        this.startTime = performance.now();
+        this.lastTime = this.startTime;
+        this.physicsFrameTimeAccumulator = this.startTime;
+    }
+
     gameloop(time) {
         if (this.abort) return;
 
         const timeSinceStart = time - this.startTime;
 
-        if (timeSinceStart <= 60000) {
-            // run for one minute
-            this.rAFId = window.requestAnimationFrame(this.gameloop.bind(this));
-        } else {
-            console.log(`skipped updates (good) = ${this.skippedUpdates}`);
-            console.log(`multi updates (bad) = ${this.multiUpdates}`);
-            console.log(`max multi update = ${this.maxMultiUpdate}`);    
-            this.end();
-            return;
-        }
+        this.rAFId = window.requestAnimationFrame(this.nextRAF.bind(this));
 
         const frameTime = time - this.lastTime;
         this.lastTime = time;
