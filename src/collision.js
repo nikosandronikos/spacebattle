@@ -305,6 +305,8 @@ class CollisionResolver {
     }
 
     static checkModelCollision(a, b) {
+        if (!a.collidable || !b.collidable) return false;
+
         // FIXME: Avoid overhead of creating Rect objects here, just make a
         // function that takes aPos, aEnd, bPos, bEnd and determines collision.
         const aPos = a.motion.position;
@@ -363,6 +365,9 @@ class CollisionResolver {
     }
 
     static checkLineCollision(a, positionVector) {
+        // Ignore a.collidable for now. Otherwise model won't wrap
+        // to other side of the world.
+
         const intersectPoint = a.motion.intersects(positionVector);
         
         if (intersectPoint === false) return false;

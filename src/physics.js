@@ -121,6 +121,7 @@ class PhysicsModel extends Hashable {
         this.rotateDirection = 0;
         this.rotateAngle = 0;
         this.otherForce = [];
+        this.collidable = true;
     }
 
     createThruster(power, angle_vector) {
