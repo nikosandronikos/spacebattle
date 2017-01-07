@@ -287,7 +287,7 @@ class CollisionResolver {
             // remove all other collisions for A and B from priority queue.
             // Those ones will never happen now that A and B are on a different
             // trajectory.
-            collision.getConnectedCollisions().forEach(e => this.collisions.remove(e))
+            collision.getConnectedCollisions().forEach(e => this.collisions.remove(e));
 
             // A and B have moved, but nothing else has.
             // So test each of A and B against all other objects
