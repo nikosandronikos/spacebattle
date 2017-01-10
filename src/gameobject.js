@@ -22,12 +22,16 @@ class Universe {
     }
 }
 */
-class ControlledObject {
-    constructor(renderObject, physicsObject) {
+
+class ControlledObject extends ObservableMixin(Object) {
+    constructor(renderObject, physicsModel) {
+        super();
         this.renderObject = renderObject;
-        this.physicsObject = physicsObject;
+        this.physicsModel = physicsModel;
         this.controlBindings = [];
         this.target = undefined;
+
+        this.stats = {"hp": 100};
     }
 
     bindKeyboardControl(key, actionFn, extraParams = []) {
@@ -45,6 +49,17 @@ class ControlledObject {
         for (let binding of this.controlBindings)
             binding();
 
+     }
+
+     damage(hp) {
+        const oldHP = this.stats.hp;
+        this.stats.hp -= hp;
+        if (this.stats.p <= 0) {
+            this.stats.hp = 0;
+            this.notifyObservers('death', oldHP, this.stats.hp); 
+            return;
+        }
+        this.notifyObservers('damage', oldHP, this.stats.hp); 
      }
 }
 
@@ -74,6 +89,17 @@ const PlayerControl = {
     }
 }
 
+// Must have a ControlledObject, or similar, bound.
+function playerCollisionHandler(ctxt, b) {
+    console.log(`${this.physicsModel.toString()} collided with object of mass ${b.mass}`);
+
+    // collision between player and some other object is based
+    // on the relative masses of the objects.
+
+    // TODO: work out equation for this damage
+    this.damage(b.mass * this.physicsModel.mass / b.mass);
+}
+
 function createPlayerFromConfig(physicsSystem, config) {
     const render = config.render;
     const physics = config.physics;
@@ -90,6 +116,8 @@ function createPlayerFromConfig(physicsSystem, config) {
             physicsModel
         );
     player.renderObject.moveTo(config.physics.position.x, config.physics.position.y);
+
+    physicsModel.addObserver('collision', playerCollisionHandler, player);
 
     for (let key in control) {
         switch (key) {

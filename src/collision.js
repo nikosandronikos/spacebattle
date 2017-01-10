@@ -97,6 +97,9 @@ class ModelCollision {
         b.motion.vector = newBVector;
         b.motion.time = remainingTime;
 
+        a.notifyObservers('collision', b);
+        b.notifyObservers('collision', a);
+
         return [this.a, this.b];
     }
 }

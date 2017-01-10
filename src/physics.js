@@ -9,16 +9,17 @@ const zeroVector = new Vector2d();
 
 const maxSpeed = 1.5;
 
-class Hashable {
+const HashableMixin = superclass => class extends superclass {
     constructor() {
-        this.id = Hashable.nextId++;
+        super();
+        this.id = HashableMixin.nextId++;
     }
 
     toString() {
         return this.id;
     }
 }
-Hashable.nextId = 0;
+HashableMixin.nextId = 0;
 
 function mod(v, m) {
     const r = v % m;
@@ -109,7 +110,7 @@ class MotionTracker extends PositionVector {
     }
 }
 
-class PhysicsModel extends Hashable {
+class PhysicsModel extends HashableMixin(ObservableMixin(Object)) {
     constructor(system, boundingCircleR, mass, position) {
         super();
         this.system = system;
