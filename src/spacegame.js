@@ -54,7 +54,7 @@ class SpaceGame extends Game {
         this.players[1].target = this.players[0];
 
         for (let player of this.players) {
-            this.physicsSystem.add(player.physicsObject);
+            this.physicsSystem.add(player.physicsModel);
         }
 
         this.changeMode('start');
@@ -81,8 +81,8 @@ class SpaceGame extends Game {
 
     render(interoplate) {
         for (let player of this.players) {
-            player.renderObject.rotate(player.physicsObject.rotateAngle);
-            player.renderObject.moveTo(player.physicsObject.position.x, player.physicsObject.position.y);
+            player.renderObject.rotate(player.physicsModel.rotateAngle);
+            player.renderObject.moveTo(player.physicsModel.position.x, player.physicsModel.position.y);
         }
     }
 

@@ -40,7 +40,7 @@ class ControlledObject {
     }
 
     update() {
-        this.physicsObject.rotate(0);
+        this.physicsModel.rotate(0);
 
         for (let binding of this.controlBindings)
             binding();
@@ -51,21 +51,21 @@ class ControlledObject {
 // methods in this class must be called with a ControlledObject bound
 const PlayerControl = {
     "rotateLeft": function(keyState) {
-        if (keyState) this.physicsObject.rotate(1);
+        if (keyState) this.physicsModel.rotate(1);
     },
     "rotateRight": function(keyState) {
-        if (keyState) this.physicsObject.rotate(-1);
+        if (keyState) this.physicsModel.rotate(-1);
     },
     "setThruster": function(i, keyState) {
-        this.physicsObject.thruster(i).firing = keyState;
+        this.physicsModel.thruster(i).firing = keyState;
     },
     "fireCannon": function () {
     },
     "tractor": function(keyState) {
         if (keyState) {
             console.log('tractor beam engaged');
-            this.target.physicsObject.addExternalForce(
-                vector2dFromPoints(this.target.physicsObject.position, this.physicsObject.position)
+            this.target.physicsModel.addExternalForce(
+                vector2dFromPoints(this.target.physicsModel.position, this.physicsModel.position)
                 .normalise()
                 .multiply(0.1),
                 1000
@@ -78,16 +78,16 @@ function createPlayerFromConfig(physicsSystem, config) {
     const render = config.render;
     const physics = config.physics;
     const control = config.control;
-    const physicsObject = new PhysicsModel(physicsSystem, physics.boundingRadius, physics.mass, physics.position);
+    const physicsModel = new PhysicsModel(physicsSystem, physics.boundingRadius, physics.mass, physics.position);
 
     for (let thruster of physics.thrusters) {
-        physicsObject.createThruster(thruster.power, thruster.angle);
+        physicsModel.createThruster(thruster.power, thruster.angle);
     }
 
     const player =
         new ControlledObject(
             createRenderObject(render.asset, render.size),
-            physicsObject
+            physicsModel
         );
     player.renderObject.moveTo(config.physics.position.x, config.physics.position.y);
 
