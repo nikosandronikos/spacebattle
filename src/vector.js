@@ -148,6 +148,12 @@ class Vector2d {
         this.y = y * Math.cos(thetaRadians) + x * Math.sin(thetaRadians);
         return this;
     }
+
+    angleTo(b) {
+        const lengthProduct = this.length * b.length;
+        if (lengthProduct === 0) return 0;
+        return Math.acos(this.dot(b) / lengthProduct);
+    }
 }
 
 function vector2dFromAngle(thetaDegrees, length=1) {
