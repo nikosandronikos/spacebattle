@@ -15,7 +15,43 @@
 	window.onload = function() {
 	    const game = new SpaceGame();
 	    game.run();
+
+        function updateHealthUI(ctxt, args) {
+            const [oldValue, newValue] = args;
+            this.innerHTML = `HP: ${newValue.toFixed(2)}`;
+        }
+
+        function addUIGroup(index) {
+            const parent = document.querySelector('#stats');
+            const group = document.createElement('div');
+            group.className = 'player';
+            group.id = `player-${index}`;
+            const name = document.createElement('p');
+            name.innerHTML = `Player ${index}`;
+            group.appendChild(name);
+            parent.appendChild(group);
+        }
+
+        function addUIHealth(name, index, value) {
+            const parent = document.querySelector(`#player-${index}`);
+            const healthBox = document.createElement('p');
+            healthBox.className = 'health';
+            healthBox.id = `health-${index}`;
+            healthBox.innerHTML = `HP: ${value.toFixed(2)}`;
+            parent.appendChild(healthBox);
+            return healthBox;
+        }
+
+        let i = 0;
+        for (player of game.players) {
+            addUIGroup(i);
+            player.addObserver('damage', updateHealthUI, addUIHealth(`Player ${i}`, i, player.stats.hp));
+            i ++;
+        }
 	}
+
+    // Some very basic UI stuff
+
 </script>
 <style>
 @import url('https://fonts.googleapis.com/css?family=Share+Tech+Mono');
@@ -27,10 +63,31 @@ body {
 }
 svg {
     display: block;
-    height: 95vh;
     margin-left: auto;
     margin-right: auto;
+    height: 95vh;
     border: #CCC 1px solid;
+}
+#stats {
+    display: block;
+    position: absolute;
+    top: 10vh;
+    left: calc(50vw + 48vh);
+}
+.player {
+    margin: 1em;
+    padding: 1em;
+    padding-top: 0em;
+    border: #CCC 1px solid;
+    width: 10em;
+    color: white;
+    background: black;
+}
+.player > div {
+    margin-top: 0.2em
+}
+.player > p:first-child {
+    color: red;
 }
 </style>
 </head>
@@ -40,5 +97,7 @@ svg {
 <g transform='translate(0,100)scale(1,-1) ' id="gameobjects">
 </g>
 </svg>
+<div id="stats">
+</div>
 </body>
 </html>
