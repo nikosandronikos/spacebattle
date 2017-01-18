@@ -135,8 +135,8 @@ class Vector2d {
     }
 
     divide(scalar) {
-        this._x = this._x / scalar;
-        this._y = this._y / scalar;
+        this.x = this.x / scalar;
+        this.y = this.y / scalar;
         return this;
     }
 
@@ -144,8 +144,8 @@ class Vector2d {
         const thetaRadians = degrees * (Math.PI / 180);
         const x = this._x;
         const y = this._y;
-        this._x = x * Math.cos(thetaRadians) - y * Math.sin(thetaRadians);
-        this._y = y * Math.cos(thetaRadians) + x * Math.sin(thetaRadians);
+        this.x = x * Math.cos(thetaRadians) - y * Math.sin(thetaRadians);
+        this.y = y * Math.cos(thetaRadians) + x * Math.sin(thetaRadians);
         return this;
     }
 }
