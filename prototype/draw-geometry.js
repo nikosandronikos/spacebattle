@@ -50,3 +50,11 @@ function drawRect(rect, colour) {
     document.querySelector('#gameobjects').appendChild(e);
 }
 
+function drawText(str, point, size) {
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('font-size', size);
+    let y = -point.y - 0.1;
+    text.setAttribute('transform', `scale(1,-1) translate(${point.x+0.15},${y})`);
+    text.innerHTML = str;
+    document.querySelector('#gameobjects').appendChild(text);
+}
