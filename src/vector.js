@@ -1,5 +1,9 @@
 "use strict";
 
+function radToDeg(radians) {
+    return radians * (180 / Math.PI);
+}
+
 class Point {
     constructor(x, y) {
         this._x = x;
