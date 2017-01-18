@@ -54,6 +54,9 @@ class ModelCollision {
         let     aMoved = a.motion.pointAt(this.time),
                 bMoved = b.motion.pointAt(this.time);
 
+        const aOrigMotion = a.motion.copy();
+        const bOrigMotion = b.motion.copy();
+
         // See http://vobarian.com/collisions/2dcollisions2.pdf for the maths.
 
         // Find unit normal to the surfaces of the objects at the collision point.
@@ -97,8 +100,8 @@ class ModelCollision {
         b.motion.vector = newBVector;
         b.motion.time = remainingTime;
 
-        a.notifyObservers('collision', b);
-        b.notifyObservers('collision', a);
+        a.notifyObservers('collision', b, aOrigMotion, a.motion);
+        b.notifyObservers('collision', a, bOrigMotion, b.motion);
 
         return [this.a, this.b];
     }

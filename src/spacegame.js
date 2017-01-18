@@ -24,6 +24,9 @@ class SpaceGame extends Game {
                     "rotate_left":  Keyboard.KEY_LEFT,
                     "rotate_right": Keyboard.KEY_RIGHT,
                     "tractor":      Keyboard.KEY_SPACE
+                },
+                stats: {
+                    hp: 100
                 }
             }),
             createPlayerFromConfig(this.physicsSystem, {
@@ -45,9 +48,15 @@ class SpaceGame extends Game {
                     "thrust":       [Keyboard.KEY_W],
                     "rotate_left":  Keyboard.KEY_A,
                     "rotate_right": Keyboard.KEY_D
+                },
+                stats: {
+                    hp: 80
                 }
             })
         ];
+
+        this.players[0].addObserver('death', this.playerDeathHandler, this, 0);
+        this.players[1].addObserver('death', this.playerDeathHandler, this, 1);
 
         // fix targetting for now since there's only two ships
         this.players[0].target = this.players[1];
@@ -154,5 +163,11 @@ class SpaceGame extends Game {
         console.log(`multi updates (bad) = ${this.multiUpdates}`);
         console.log(`max multi update = ${this.maxMultiUpdate}`);    
         this.end();
+    }
+
+    playerDeathHandler(playerIndex, oldHP, newHP) {
+        console.log('someone died');
+        createRenderText(`Player ${playerIndex} died.`, 8).moveTo(35, 40);
+        this.changeMode('end');
     }
 }

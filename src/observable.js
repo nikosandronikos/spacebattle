@@ -14,15 +14,16 @@ const ObservableMixin = superclass => class extends superclass {
 		this.observers[event] = [fn.bind(useThis, ctxt)];
 	}
 
-	notifyObservers(event, oldValue, newValue) {
+	notifyObservers(event, ...args) {
 		if (!this.observers.hasOwnProperty(event))
 			return;
 
 		for (let observer of this.observers[event]) {
-			observer(oldValue, newValue);
+			observer(args);
 		}
 	}
 }
+
 /*
 class Player extends ObservableMixin(Object) {
 	constructor(maxHP) {
