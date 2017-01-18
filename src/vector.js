@@ -111,6 +111,7 @@ class Vector2d {
     }
 
     normalise() {
+        if (this.length == 0) return this;
         this.divide(this.length);
         return this;
     }
