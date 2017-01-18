@@ -1,0 +1,99 @@
+<!doctype html>
+<head>
+<title>Collision detection prototype</title>
+<script src="draw-geometry.js"></script>
+<script src="../src/vector.js"></script>
+<script src="../src/observable.js"></script>
+<script src="../src/physics.js"></script>
+<script src="../src/gameobject.js"></script>
+<script>
+
+const vectors = [];
+const colours = ['green', 'blue', 'red', 'purple', 'cyan', 'crimson', 'deeppink', 'skyblue', 'indigo', 'orange'];
+
+function drawAll() {
+    let colour = 0;
+    vectors.forEach(v => {drawSegment(v[0], '#999'), drawSegment(v[1], '#999')});
+}
+
+window.onload = function() {
+    vectors.push([
+        new PositionVector(-5, 0, -2, 2),
+        new PositionVector(-7, 2, -2, -2)
+    ],
+    [
+        new PositionVector(-2, 0, -2, 2),
+        new PositionVector(-4, 2, -2, 0)
+    ],
+    [
+        new PositionVector(0, 0, 2, 2),
+        new PositionVector(2, 2, 0, 2)
+    ],
+    [
+        new PositionVector(0, 0, -2, 2),
+        new PositionVector(-2, 2, 0, 2)
+    ],
+    [
+        new PositionVector(0, 0, 2, -2),
+        new PositionVector(2, -2, 0, -2)
+    ],
+    [
+        new PositionVector(0, 0, -2, -2),
+        new PositionVector(-2, -2, 0, -2)
+    ],
+    [
+        new PositionVector(2, 0, 2, 2),
+        new PositionVector(4, 2, 0.5, 1)
+    ],
+    [
+        new PositionVector(4, 0, 2, 2),
+        new PositionVector(6, 2, 1, 2)
+    ],
+    [
+        new PositionVector(6, 0, 2, 2),
+        new PositionVector(8, 2, 2, 2)
+    ],
+    [
+        new PositionVector(-4, 0, 0, -3),
+        new PositionVector(-4, -3, 0, 2)
+    ],
+    [
+        new PositionVector(8, 0, 0, 0),
+        new PositionVector(8, 0, 2, 0)
+    ]
+    );
+
+    drawAll();
+
+    for (v of vectors) {
+        playerCollisionHandler.bind(
+            {
+                damage: d => drawText(d.toFixed(2), {x: v[1].endPoint().x, y: v[1].endPoint().y}, 0.6),
+                physicsModel: {mass: 1}
+            },
+            null, [{mass: 1},  v[0], v[1]]
+        )();
+    }
+
+}
+
+</script>
+<style>
+body {font-family: sans-serif;}
+svg {height: 95vh;}
+marker {overflow: visible;}
+</style>
+</head>
+<body>
+<svg id='render' viewBox="-10 -10 25 20">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,-5 l5,5 l-5,5 z" fill="grey"/>
+</marker>
+</defs>
+<g transform='translate(0,0) scale(1,-1) ' id="gameobjects">
+<path d="M0,-100 v200 M-100,0 h200" stroke='#666' stroke-dasharray='0.2' stroke-width="0.1"/>
+</g>
+</svg>
+</body>
+</html>
