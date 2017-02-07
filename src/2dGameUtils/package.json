@@ -1,0 +1,23 @@
+{
+  "name": "2d-game-utils",
+  "version": "0.0.1",
+  "description": "Utilities, data structures, and geometry classes for 2d graphics programming.",
+  "author": "Nikos Andronikos <nikos.andronikos@gmail.com>",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nikosandronikos/2dGameUtils.git"
+  },
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.22.2",
+    "babel-loader": "^6.2.10",
+    "babel-preset-es2015": "^6.22.0",
+    "copy-webpack-plugin": "^4.0.1",
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.3.0"
+  }
+}
