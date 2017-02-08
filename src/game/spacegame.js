@@ -1,6 +1,17 @@
-class SpaceGame extends Game {
+import {Keyboard} from '../2dGameUtils/src/input';
+import {Game} from '../2dGameUtils/src/game';
+
+import {PhysicsSystem} from '../physics';
+
+import {createPlayerFromConfig} from './gameobject';
+import {createRenderText} from '../RenderObject';
+
+export class SpaceGame extends Game {
     constructor() {
         super();
+
+        // world
+        this.physicsSystem = new PhysicsSystem({minX: 0, minY:0, maxX:100, maxY:100});
 
         this.players = [
             createPlayerFromConfig(this.physicsSystem, {

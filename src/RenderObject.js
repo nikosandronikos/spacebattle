@@ -1,4 +1,6 @@
-class RenderObject {
+import {Vector2d} from './2dGameUtils/src/geometry';
+
+export class RenderObject {
     constructor(domObject) {
         this.domObject = domObject;
         this.x = 50;
@@ -36,12 +38,12 @@ class RenderObject {
     }
 }
 
-SvgNamespace = 'http://www.w3.org/2000/svg';
+const SvgNamespace = 'http://www.w3.org/2000/svg';
 
 const colours = ['blue', 'red', 'green', 'pink', 'cyan', 'white', 'purple', 'hotpink', 'lime', 'mediumvioletred'];
-currentColour = 0;
+let currentColour = 0;
 
-function createRenderObject(assetName, size) {
+export function createRenderObject(assetName, size) {
     const boundRadius = size / 2;
     switch (assetName) {
         case "randomColouredBall":
@@ -55,8 +57,8 @@ function createRenderObject(assetName, size) {
         case "tri":
             {
                 const domObject = document.createElementNS(SvgNamespace, 'path');
-                const p1 = vector2dFromAngle(135, boundRadius);
-                const p2 = vector2dFromAngle(135+90, boundRadius);
+                const p1 = Vector2d.createFromAngle(135, boundRadius);
+                const p2 = Vector2d.createFromAngle(135+90, boundRadius);
                 domObject.setAttribute('d', `M${boundRadius},0 L${p1.x},${p1.y} ${p2.x},${p2.y} z`);
                 domObject.setAttribute('fill', 'red');
                 document.querySelector('#gameobjects').appendChild(domObject);
@@ -65,7 +67,7 @@ function createRenderObject(assetName, size) {
     }
 }
 
-function createRenderText(str, size) {
+export function createRenderText(str, size) {
     const domObject = document.createElementNS(SvgNamespace, 'text');
     domObject.innerHTML = str;
     domObject.setAttribute('font-size', size);

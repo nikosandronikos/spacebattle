@@ -1,3 +1,8 @@
+import {Vector2d, PositionVector, Rect, Point} from '../2dGameUtils/src/geometry';
+import {PriorityQueue} from '../2dGameUtils/src/dataStruct';
+
+import {PhysicsModel} from './physics';
+
 class TrackedModel {
     constructor(physicsModel) {
         this.physicsModel = physicsModel;
@@ -61,11 +66,11 @@ class ModelCollision {
 
         // Find unit normal to the surfaces of the objects at the collision point.
         // Also find tangent to unit normal.
-        let     unitNormal = vector2dFromPoints(aMoved, bMoved);
+        let     unitNormal = Vector2d.createFromPoints(aMoved, bMoved);
         if (unitNormal.length == 0.0) {
             aMoved = a.motion.startPoint();
             bMoved = b.motion.startPoint();
-            unitNormal = vector2dFromPoints(aMoved, bMoved);
+            unitNormal = Vector2d.createFromPoints(aMoved, bMoved);
             console.log('Had to fudge position for collision calculation.');
             if (unitNormal.length == 0.0) {
                 throw 'Having trouble with this collision'
@@ -178,7 +183,7 @@ function createCollision(a, b, time) {
 }
 
 
-class CollisionResolver {
+export class CollisionResolver {
     constructor() {
         // The known models.
         // Each may have multiple collisions detected - but only the first
@@ -379,7 +384,7 @@ class CollisionResolver {
         if (intersectPoint === false) return false;
 
         const vTravel =
-            vector2dFromPoints(
+            Vector2d.createFromPoints(
                 a.motion.position,
                 intersectPoint
             );

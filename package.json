@@ -1,12 +1,12 @@
 {
-  "name": "2d-game-utils",
+  "name": "Spacebattle",
   "version": "0.0.1",
-  "description": "Utilities, data structures, and geometry classes for 2d graphics programming.",
+  "description": "A 2d spaceship battle game.",
   "author": "Nikos Andronikos <nikos.andronikos@gmail.com>",
   "license": "MPL-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nikosandronikos/2dGameUtils.git"
+    "url": "https://github.com/nikosandronikos/spacebattle.git"
   },
   "scripts": {
     "build": "webpack",

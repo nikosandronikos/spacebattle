@@ -1,4 +1,7 @@
-"use strict";
+import {Rect, Point, Vector2d, PositionVector} from '../2dGameUtils/src/geometry';
+import {ObservableMixin} from '../2dGameUtils/src/pattern';
+
+import {CollisionResolver} from './collision';
 
 /* Physics module
  * The key functionality of this module, is that given a set of control inputs,
@@ -9,43 +12,31 @@ const zeroVector = new Vector2d();
 
 const maxSpeed = 1.5;
 
-const HashableMixin = superclass => class extends superclass {
-    constructor() {
-        super();
-        this.id = HashableMixin.nextId++;
-    }
-
-    toString() {
-        return this.id;
-    }
-}
-HashableMixin.nextId = 0;
-
 function mod(v, m) {
     const r = v % m;
     return r < 0 ? r + m : r;
 }
 
-class PhysicsSystem {
+export class PhysicsSystem {
     constructor(dimensions) {
         this.collisionResolver = new CollisionResolver();
         this.models = [];
         this.dimensions =
             new Rect(dimensions.minX, dimensions.minY, dimensions.maxX, dimensions.maxY);
         this.boundaries = [
-            positionVectorFromPoints(
+            PositionVector.createFromPoints(
                 new Point(dimensions.minX, dimensions.minY),
                 new Point(dimensions.maxX, dimensions.minY)
             ),
-            positionVectorFromPoints(
+            PositionVector.createFromPoints(
                 new Point(dimensions.maxX, dimensions.minY),
                 new Point(dimensions.maxX, dimensions.maxY)
             ),
-            positionVectorFromPoints(
+            PositionVector.createFromPoints(
                 new Point(dimensions.maxX, dimensions.maxY),
                 new Point(dimensions.minX, dimensions.maxY)
             ),
-            positionVectorFromPoints(
+            PositionVector.createFromPoints(
                 new Point(dimensions.minX, dimensions.maxY),
                 new Point(dimensions.minX, dimensions.minY)
             )
@@ -77,9 +68,9 @@ class PhysicsSystem {
     }
 }
 
-class Thruster {
+export class Thruster {
     constructor(power, angle) {
-        this._thrustVector = vector2dFromAngle(angle, power);
+        this._thrustVector = Vector2d.createFromAngle(angle, power);
         this.isFiring = false;
     }
 
@@ -110,9 +101,9 @@ class MotionTracker extends PositionVector {
     }
 }
 
-class PhysicsModel extends HashableMixin(ObservableMixin(Object)) {
+export class PhysicsModel extends ObservableMixin {//HashableMixin(ObservableMixin(Object)) {
     constructor(system, boundingCircleR, mass, position) {
-        super();
+        super(...arguments);
         this.system = system;
         this.motion = new MotionTracker(position);
         this.boundingCircleR = boundingCircleR;

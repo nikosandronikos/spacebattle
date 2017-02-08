@@ -1,4 +1,9 @@
-"use strict";
+import {ObservableMixin} from '../2dGameUtils/src/pattern';
+import {Vector2d} from '../2dGameUtils/src/geometry';
+import {Keyboard} from '../2dGameUtils/src/input';
+
+import {createRenderObject, RenderObject} from '../RenderObject';
+import {PhysicsModel} from '../physics/physics';
 
 // This is a specialsied player object, but ultimately I want to generalise
 // this but allow input from different sources.
@@ -23,7 +28,7 @@ class Universe {
 }
 */
 
-class GameObject extends ObservableMixin(Object) {
+export class GameObject extends ObservableMixin { //(Object) {
     constructor(renderObject, physicsModel, stats) {
         super();
         this.renderObject = renderObject
@@ -101,7 +106,7 @@ const PlayerControl = {
         if (keyState) {
             console.log('tractor beam engaged');
             this.target.physicsModel.addExternalForce(
-                vector2dFromPoints(this.target.physicsModel.position, this.physicsModel.position)
+                Vector2d.createFromPoints(this.target.physicsModel.position, this.physicsModel.position)
                 .normalise()
                 .multiply(0.1),
                 1000
@@ -111,9 +116,7 @@ const PlayerControl = {
 }
 
 // Must have a ControlledObject, or similar, bound.
-function playerCollisionHandler(ctxt, args) {
-    const [b, origMotion, newMotion] = args;
-
+function playerCollisionHandler(b, origMotion, newMotion) {
     let angleDiff = origMotion.vector.angleTo(newMotion.vector);
     if (angleDiff > Math.PI) angleDiff -= Math.PI;
 
@@ -130,7 +133,7 @@ function playerCollisionHandler(ctxt, args) {
     this.damage(10 * (angleDiff + 0.2) * velocityDiff * massDiff);
 }
 
-function createPlayerFromConfig(physicsSystem, config) {
+export function createPlayerFromConfig(physicsSystem, config) {
     const render = config.render;
     const physics = config.physics;
     const control = config.control;

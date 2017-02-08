@@ -1,1 +1,0 @@
-export {ObservableMixin} from './observable';

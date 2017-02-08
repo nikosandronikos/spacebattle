@@ -16,7 +16,7 @@
                 physicsObject: new PhysicsModel(physicsSystem, size, size * 4, {x: Math.random() * 100, y: Math.random() * 100})
             };
 
-        ball.physicsObject.addExternalForce(vector2dFromAngle(Math.random() * 360, size * 4 * 8), 1);
+        ball.physicsObject.addExternalForce(Vector2d.createFromAngle(Math.random() * 360, size * 4 * 8), 1);
         physicsSystem.add(ball.physicsObject);
 
         return ball;
@@ -29,7 +29,7 @@
                 physicsObject: new PhysicsModel(physicsSystem, size, 1000, {x: 50, y: 50})
             };
 
-        planet.physicsObject.addExternalForce(vector2dFromAngle(Math.random() * 360, size * 4 * 4), 1);
+        planet.physicsObject.addExternalForce(Vector2d.createFromAngle(Math.random() * 360, size * 4 * 4), 1);
         physicsSystem.add(planet.physicsObject);
 
         return planet;
