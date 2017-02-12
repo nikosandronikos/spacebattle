@@ -9,7 +9,7 @@
     "url": "https://github.com/nikosandronikos/spacebattle.git"
   },
   "scripts": {
-    "build": "webpack",
+    "build": "webpack && node scripts/fixMixins.js build/spacebattle.js > build/spacebattleFixedMixins.js",
     "watch": "webpack --watch"
   },
   "devDependencies": {

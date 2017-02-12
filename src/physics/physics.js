@@ -101,9 +101,9 @@ class MotionTracker extends PositionVector {
     }
 }
 
-export class PhysicsModel extends ObservableMixin {//HashableMixin(ObservableMixin(Object)) {
+export class PhysicsModel extends ObservableMixin(Object) {
     constructor(system, boundingCircleR, mass, position) {
-        super(...arguments);
+        super();
         this.system = system;
         this.motion = new MotionTracker(position);
         this.boundingCircleR = boundingCircleR;

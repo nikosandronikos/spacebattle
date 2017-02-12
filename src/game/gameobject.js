@@ -28,7 +28,7 @@ class Universe {
 }
 */
 
-export class GameObject extends ObservableMixin { //(Object) {
+export class GameObject extends ObservableMixin(Object) {
     constructor(renderObject, physicsModel, stats) {
         super();
         this.renderObject = renderObject
