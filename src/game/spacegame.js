@@ -81,6 +81,7 @@ export class SpaceGame extends Game {
     }
 
     run() {
+        document.addEventListener('focus', Keyboard.resetAllKeys);
         window.addEventListener('keydown', Keyboard.keydown_handler);
         window.addEventListener('keyup', Keyboard.keyup_handler);
         super.run();
