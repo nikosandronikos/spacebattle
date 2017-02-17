@@ -1,6 +1,5 @@
-![Spacebattle title image](andronikos.id.au/title.png)
+![Spacebattle title image](http://andronikos.id.au/title.png)
 
-# spacebattle
 A little multi player spaceship combat game. Still very much a WIP.
 
 ## Dependencies
