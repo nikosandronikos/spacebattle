@@ -1,6 +1,6 @@
-import {Keyboard} from '../2dGameUtils/src/input';
-import {Game} from '../2dGameUtils/src/game';
-import {Rect} from '../2dGameUtils/src/geometry';
+import {Keyboard} from '../2dGameUtils';
+import {Game} from '../2dGameUtils';
+import {Rect} from '../2dGameUtils';
 
 import {RenderObject, Renderer} from '../renderer';
 

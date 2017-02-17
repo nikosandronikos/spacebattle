@@ -1,5 +1,5 @@
-import {Rect, Point, Vector2d, PositionVector} from '../2dGameUtils/src/geometry';
-import {mixin, ObservableMixin} from '../2dGameUtils/src/pattern';
+import {Rect, Point, Vector2d, PositionVector} from '../2dGameUtils';
+import {mixin, ObservableMixin} from '../2dGameUtils';
 
 import {CollisionResolver} from './collision';
 

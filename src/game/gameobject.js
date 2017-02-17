@@ -1,6 +1,6 @@
-import {mixin, ObservableMixin} from '../2dGameUtils/src/pattern';
-import {Vector2d} from '../2dGameUtils/src/geometry';
-import {Keyboard} from '../2dGameUtils/src/input';
+import {mixin, ObservableMixin} from '../2dGameUtils';
+import {Vector2d} from '../2dGameUtils';
+import {Keyboard} from '../2dGameUtils';
 
 import {PhysicsModel} from '../physics/physics';
 

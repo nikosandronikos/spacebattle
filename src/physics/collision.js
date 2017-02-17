@@ -1,5 +1,5 @@
-import {Vector2d, PositionVector, Rect, Point} from '../2dGameUtils/src/geometry';
-import {PriorityQueue} from '../2dGameUtils/src/dataStruct';
+import {Vector2d, PositionVector, Rect, Point} from '../2dGameUtils';
+import {PriorityQueue} from '../2dGameUtils';
 
 import {PhysicsModel} from './physics';
 
