@@ -10,7 +10,7 @@ const readline = require('readline');
 const jsFile = process.argv[2];
 const rl = readline.createInterface({input: fs.createReadStream(jsFile)});
 
-const mixinRe = /^var\s(\w+Mixin)\s=\sexports\.\1\s=\sfunction\s\1\(superclass\)\s{$/;
+const mixinRe = /^var\s(\w+Mixin)\s=\s(exports\.\1\s=\s)?function\s\1\(superclass\)\s{$/;
 const classRe = /(\s*)_inherits\(_class, _superclass\);$/;
 
 let countdown = null;
