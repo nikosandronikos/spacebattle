@@ -1,62 +1,56 @@
 <!doctype html>
 <head>
 <title>Space Battle</title>
-<script src="spacebattleFixedMixins.js"></script>
+<script src="pixi.js"></script>
+<script src="spacebattle.js"></script>
 <script>
 	window.onload = function() {
-	    const game = new SPACEBATTLE.SpaceGame();
-	    game.run();
+        SPACEBATTLE.GameLoader.init();
+        SPACEBATTLE.GameLoader.loadAssets(SPACEBATTLE.GameLoader.start.bind(SPACEBATTLE.GameLoader));
+    }
+    /*
+    function updateHealthUI(oldValue, newValue) {
+        this.innerHTML = `HP: ${newValue.toFixed(2)}`;
+    }
 
-        function updateHealthUI(oldValue, newValue) {
-            this.innerHTML = `HP: ${newValue.toFixed(2)}`;
-        }
+    function addUIGroup(index) {
+        const parent = document.querySelector('#stats');
+        const group = document.createElement('div');
+        group.className = 'player';
+        group.id = `player-${index}`;
+        const name = document.createElement('p');
+        name.innerHTML = `Player ${index}`;
+        group.appendChild(name);
+        parent.appendChild(group);
+    }
 
-        function addUIGroup(index) {
-            const parent = document.querySelector('#stats');
-            const group = document.createElement('div');
-            group.className = 'player';
-            group.id = `player-${index}`;
-            const name = document.createElement('p');
-            name.innerHTML = `Player ${index}`;
-            group.appendChild(name);
-            parent.appendChild(group);
-        }
+    function addUIHealth(name, index, value) {
+        const parent = document.querySelector(`#player-${index}`);
+        const healthBox = document.createElement('p');
+        healthBox.className = 'health';
+        healthBox.id = `health-${index}`;
+        healthBox.innerHTML = `HP: ${value.toFixed(2)}`;
+        parent.appendChild(healthBox);
+        return healthBox;
+    }
 
-        function addUIHealth(name, index, value) {
-            const parent = document.querySelector(`#player-${index}`);
-            const healthBox = document.createElement('p');
-            healthBox.className = 'health';
-            healthBox.id = `health-${index}`;
-            healthBox.innerHTML = `HP: ${value.toFixed(2)}`;
-            parent.appendChild(healthBox);
-            return healthBox;
-        }
-
-        let i = 0;
-        for (player of game.players) {
-            addUIGroup(i);
-            player.addObserver('damage', updateHealthUI, addUIHealth(`Player ${i}`, i, player.stats.hp));
-            i ++;
-        }
-	}
-
+    let i = 0;
+    for (player of game.players) {
+        addUIGroup(i);
+        player.addObserver('damage', updateHealthUI, addUIHealth(`Player ${i}`, i, player.stats.hp));
+        i ++;
+    }
+    */
     // Some very basic UI stuff
 
 </script>
 <style>
-@import url('https://fonts.googleapis.com/css?family=Share+Tech+Mono');
+/* @import url('https://fonts.googleapis.com/css?family=Share+Tech+Mono'); */
 body {
     background: #042029;
     font-family: 'Share Tech Mono', sans-serif;
     font-variant: small-caps;
     word-spacing: -50%;
-}
-svg {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    height: 95vh;
-    border: #CCC 1px solid;
 }
 #stats {
     display: block;
@@ -82,11 +76,6 @@ svg {
 </style>
 </head>
 <body>
-<svg id='render' viewBox="0 0 100 100">
-<rect width="100" height="100" fill="black"/>
-<g transform='translate(0,100)scale(1,-1) ' id="gameobjects">
-</g>
-</svg>
 <div id="stats">
 </div>
 </body>

@@ -1,5 +1,5 @@
 import {Rect, Point, Vector2d, PositionVector} from '../2dGameUtils/src/geometry';
-import {ObservableMixin} from '../2dGameUtils/src/pattern';
+import {mixin, ObservableMixin} from '../2dGameUtils/src/pattern';
 
 import {CollisionResolver} from './collision';
 
@@ -10,7 +10,7 @@ import {CollisionResolver} from './collision';
 
 const zeroVector = new Vector2d();
 
-const maxSpeed = 1.5;
+const maxSpeed = 5;
 
 function mod(v, m) {
     const r = v % m;
@@ -101,9 +101,8 @@ class MotionTracker extends PositionVector {
     }
 }
 
-export class PhysicsModel extends ObservableMixin(Object) {
+export class PhysicsModel {
     constructor(system, boundingCircleR, mass, position) {
-        super();
         this.system = system;
         this.motion = new MotionTracker(position);
         this.boundingCircleR = boundingCircleR;
@@ -185,6 +184,7 @@ export class PhysicsModel extends ObservableMixin(Object) {
         this.otherForce.push({"vector": v, "duration": duration});
     }
 }
+mixin(PhysicsModel, ObservableMixin);
 
 class PhysicModelLoader {
     newPhysicsModel(config) {

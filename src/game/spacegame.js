@@ -1,27 +1,66 @@
 import {Keyboard} from '../2dGameUtils/src/input';
 import {Game} from '../2dGameUtils/src/game';
+import {Rect} from '../2dGameUtils/src/geometry';
+
+import {RenderObject, Renderer} from '../renderer';
 
 import {PhysicsSystem} from '../physics';
 
 import {createPlayerFromConfig} from './gameobject';
-import {createRenderText} from '../RenderObject';
+//import {createRenderText} from '../RenderObject';
+
+function pickAStar(layerNum) {
+    const starCols = [
+        'Big Red',
+        'Big Blue',
+        'Big Bright Blue',
+        'Med Red',
+        'Med Light Blue',
+        'Med Bright Blue',
+        'Med Green',
+        'Med Yellow',
+        'Med Purple',
+        'Small Blue',
+        'Small White',
+        'Small Light Blue',
+    ];
+    const starSelection = [{min: 9, max: 12}, {min: 3, max: 12}, {min: 0, max: 12}][layerNum];
+    const n = Math.random();
+    const selection = ~~(Math.random() * (starSelection.max - starSelection.min)) + starSelection.min;
+    return `Stars_001-${starCols[selection]}-${selection}`;
+}
 
 export class SpaceGame extends Game {
-    constructor() {
+    constructor(renderer) {
         super();
+        this.renderer = renderer;
+        this.physicsSystem = new PhysicsSystem({minX: 0, minY:0, maxX:renderer.bounds.x, maxY:renderer.bounds.y});
 
-        // world
-        this.physicsSystem = new PhysicsSystem({minX: 0, minY:0, maxX:100, maxY:100});
+        const nStarDefs = 12;
 
+        for (let layer = 25, layerNum = 0; layerNum < 3; layer *= 2, layerNum++) {
+            const sceneryLayer = renderer.createSceneryLayer(layer);
+
+            renderer.layers[100 - layer] = sceneryLayer;
+            for (let i = 0; i < 500 * layer; i++) {
+                sceneryLayer.addSprite(
+                    Math.random() * renderer.bounds.x,
+                    Math.random() * renderer.bounds.y,
+                    pickAStar(layerNum)
+                );
+            }
+        }
+
+        this.playerLayer = renderer.createLayer(100);
+        Renderer.playerLayer = this.playerLayer;
+
+        //renderer.viewPort.lookAtRect(new Rect(750,550,1050,750));
         this.players = [
             createPlayerFromConfig(this.physicsSystem, {
-                "render": {
-                    "asset":        "tri",
-                    "size":         10
-                },
+                "sprite": RenderObject.createFromConfig('uship', this.playerLayer),
                 "physics": {
-                    "position": {"x": 30, "y": 50},
-                    "boundingRadius":   5,
+                    "position": {"x": 300, "y": 50},
+                    "boundingRadius":   22,
                     "mass":         10,
                     "rotateRate":   10,
                     "maxSpeed":     10,
@@ -41,13 +80,10 @@ export class SpaceGame extends Game {
                 }
             }),
             createPlayerFromConfig(this.physicsSystem, {
-                "render": {
-                    "asset":        "tri",
-                    "size":         5
-                },
+                "sprite": RenderObject.createFromConfig('uship', this.playerLayer),
                 "physics": {
-                    "position": {"x": 60, "y": 50},
-                    "boundingRadius":   2.5,
+                    "position": {"x": 600, "y": 500},
+                    "boundingRadius":   22,
                     "mass":         5,
                     "rotateRate":   20,
                     "maxSpeed":     10,
@@ -75,6 +111,8 @@ export class SpaceGame extends Game {
 
         for (let player of this.players) {
             this.physicsSystem.add(player.physicsModel);
+            player.renderObject.applyConfig('engineStart');
+            player.update();
         }
 
         this.changeMode('start');
@@ -97,14 +135,20 @@ export class SpaceGame extends Game {
         for (let player of this.players) {
             player.update();
         }
+        this.renderer.viewPort.lookAtRect(
+            new Rect(
+                this.players[0].physicsModel.position.x,
+                this.players[0].physicsModel.position.y,
+                this.players[1].physicsModel.position.x,
+                this.players[1].physicsModel.position.y
+            ).expand(50,50)
+        );
+
         this.physicsSystem.update(this.physicsFrameTime);
     }
 
     render(interoplate) {
-        for (let player of this.players) {
-            player.renderObject.rotate(player.physicsModel.rotateAngle);
-            player.renderObject.moveTo(player.physicsModel.position.x, player.physicsModel.position.y);
-        }
+        this.renderer.renderFrame();
     }
 
     changeMode(newMode) {
@@ -112,28 +156,32 @@ export class SpaceGame extends Game {
             case 'start':
             case 'pause':
             case 'end':
-                this.statusText.remove();
-                this.statusText = null;
+                //this.statusText.remove();
+                //this.statusText = null;
                 break;
         }
 
         switch (newMode) {
             case 'start':
                 this.nextRAF = this.startGameLoop;
-                this.statusText = createRenderText('Get Ready...', 8).moveTo(30,50);
+                console.log('Get Ready...');
+                //this.statusText = createRenderText('Get Ready...', 8).moveTo(30,50);
                 break;
             case 'run':
                 this.resetTiming();
                 this.nextRAF = this.gameloop;
+                console.log('Go!!');
                 break;
             case 'pause':
                 Keyboard.ignoreUntilReleased(Keyboard.KEY_ESC);
                 this.nextRAF = this.pausedGameLoop
-                this.statusText = createRenderText('Paused.', 8).moveTo(40,50);
+                console.log('Paused.');
+                //this.statusText = createRenderText('Paused.', 8).moveTo(40,50);
                 break;
             case 'end':
                 this.nextRAF = this.endGameLoop;
-                this.statusText = createRenderText('Game Over.', 8).moveTo(35,50);
+                console.log('Game Over.');
+                //this.statusText = createRenderText('Game Over.', 8).moveTo(35,50);
                 break;
         }
 
@@ -154,6 +202,7 @@ export class SpaceGame extends Game {
         if (Keyboard.anyKeyDown()) {
             this.changeMode('run');
         }
+        this.render();
         this.rAFId = window.requestAnimationFrame(this.nextRAF.bind(this));
     }
 
@@ -179,7 +228,7 @@ export class SpaceGame extends Game {
 
     playerDeathHandler(playerIndex, oldHP, newHP) {
         console.log('someone died');
-        createRenderText(`Player ${playerIndex} died.`, 8).moveTo(35, 40);
+        //createRenderText(`Player ${playerIndex} died.`, 8).moveTo(35, 40);
         this.changeMode('end');
     }
 }

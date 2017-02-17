@@ -1,3 +1,6 @@
 [submodule "src/2dGameUtils"]
 	path = src/2dGameUtils
 	url = https://github.com/nikosandronikos/2dGameUtils.git
+[submodule "src/renderer"]
+	path = src/renderer
+	url = https://github.com/nikosandronikos/pixl.js.git

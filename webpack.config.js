@@ -5,6 +5,8 @@ var path = require('path');
 var webpack = require('webpack');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 
+var dir_assets = path.resolve(__dirname, 'assets');
+var dir_lib = path.resolve(__dirname, 'lib');
 var dir_html = path.resolve(__dirname, 'html');
 var dir_src = path.resolve(__dirname, 'src');
 var dir_build = path.resolve(__dirname, 'build');
@@ -27,9 +29,10 @@ module.exports = {
         ]
     },
     plugins: [
-        // Simply copies the files over
         new CopyWebpackPlugin([
-            { from: dir_html } // to: output.path
+            { from: dir_html }, // to: output.path
+            { from: dir_lib },
+            { from: dir_assets }
         ]),
         // Avoid publishing files when compilation fails
         new webpack.NoErrorsPlugin()

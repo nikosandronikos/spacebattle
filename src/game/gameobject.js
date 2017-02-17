@@ -1,8 +1,7 @@
-import {ObservableMixin} from '../2dGameUtils/src/pattern';
+import {mixin, ObservableMixin} from '../2dGameUtils/src/pattern';
 import {Vector2d} from '../2dGameUtils/src/geometry';
 import {Keyboard} from '../2dGameUtils/src/input';
 
-import {createRenderObject, RenderObject} from '../RenderObject';
 import {PhysicsModel} from '../physics/physics';
 
 // This is a specialsied player object, but ultimately I want to generalise
@@ -28,9 +27,8 @@ class Universe {
 }
 */
 
-export class GameObject extends ObservableMixin(Object) {
+export class GameObject {
     constructor(renderObject, physicsModel, stats) {
-        super();
         this.renderObject = renderObject
         this.physicsModel = physicsModel;
         this.stats = stats;
@@ -50,6 +48,7 @@ export class GameObject extends ObservableMixin(Object) {
         this.notifyObservers('damage', oldHP, this.stats.hp); 
     }
 }
+mixin(GameObject, ObservableMixin);
 
 class AIObject extends GameObject {
     constructor(renderObject, physicsModel, controllerFn, stats) {
@@ -86,16 +85,19 @@ class ControlledObject extends GameObject {
         for (let binding of this.controlBindings)
             binding();
 
+        this.renderObject.rotate(this.physicsModel.rotateAngle);
+        this.renderObject.moveTo(this.physicsModel.position.x, this.physicsModel.position.y);
+
      }
 }
 
 // methods in this class must be called with a ControlledObject bound
 const PlayerControl = {
     "rotateLeft": function(keyState) {
-        if (keyState) this.physicsModel.rotate(1);
+        if (keyState) this.physicsModel.rotate(-1);
     },
     "rotateRight": function(keyState) {
-        if (keyState) this.physicsModel.rotate(-1);
+        if (keyState) this.physicsModel.rotate(1);
     },
     "setThruster": function(i, keyState) {
         this.physicsModel.thruster(i).firing = keyState;
@@ -134,7 +136,6 @@ function playerCollisionHandler(b, origMotion, newMotion) {
 }
 
 export function createPlayerFromConfig(physicsSystem, config) {
-    const render = config.render;
     const physics = config.physics;
     const control = config.control;
     const physicsModel = new PhysicsModel(physicsSystem, physics.boundingRadius, physics.mass, physics.position);
@@ -145,7 +146,7 @@ export function createPlayerFromConfig(physicsSystem, config) {
 
     const player =
         new ControlledObject(
-            createRenderObject(render.asset, render.size),
+            config.sprite,
             physicsModel,
             config.stats
         );

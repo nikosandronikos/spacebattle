@@ -1,4 +1,4 @@
-export * from './game/spacegame';
+export * from './game/loader';
 
 global.SPACEBATTLE = exports;
 
