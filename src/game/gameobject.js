@@ -100,6 +100,17 @@ const PlayerControl = {
         if (keyState) this.physicsModel.rotate(1);
     },
     "setThruster": function(i, keyState) {
+        // If there's multiple thrusters, i specifies the
+        // index of the thruster being controlled.
+        if (i === 0) {
+            // Only worry about the thruster out the back for rendering the engine effect
+            const wasEngineOn = this.engineOn;
+            this.engineOn = keyState;
+            if (!wasEngineOn && this.engineOn)
+                this.renderObject.applyConfig('engineStart');
+            else if (wasEngineOn && !this.engineOn)
+                this.renderObject.applyConfig('engineOff');
+        }
         this.physicsModel.thruster(i).firing = keyState;
     },
     "fireCannon": function () {
