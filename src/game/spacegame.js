@@ -36,12 +36,13 @@ export class SpaceGame extends Game {
         this.renderer = renderer;
         this.physicsSystem = new PhysicsSystem({minX: 0, minY:0, maxX:renderer.bounds.x, maxY:renderer.bounds.y});
 
+        this.mainView = this.renderer.createViewPort(new Rect(0, 0, renderer.bounds.x, renderer.bounds.y));
+
         const nStarDefs = 12;
 
         for (let layer = 25, layerNum = 0; layerNum < 3; layer *= 2, layerNum++) {
-            const sceneryLayer = renderer.createSceneryLayer(layer);
+            const sceneryLayer = this.mainView.createSceneryLayer(layer);
 
-            renderer.layers[100 - layer] = sceneryLayer;
             for (let i = 0; i < 500 * layer; i++) {
                 sceneryLayer.addSprite(
                     Math.random() * renderer.bounds.x,
@@ -51,10 +52,10 @@ export class SpaceGame extends Game {
             }
         }
 
-        this.playerLayer = renderer.createLayer(100);
-        Renderer.playerLayer = this.playerLayer;
 
-        //renderer.viewPort.lookAtRect(new Rect(750,550,1050,750));
+
+        this.playerLayer = this.mainView.createLayer();
+
         this.players = [
             createPlayerFromConfig(this.physicsSystem, {
                 "sprite": RenderObject.createFromConfig('uship', this.playerLayer),
@@ -135,7 +136,7 @@ export class SpaceGame extends Game {
         for (let player of this.players) {
             player.update();
         }
-        this.renderer.viewPort.lookAtRect(
+        this.mainView.lookAtRect(
             new Rect(
                 this.players[0].physicsModel.position.x,
                 this.players[0].physicsModel.position.y,
