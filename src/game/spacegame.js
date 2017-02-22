@@ -112,7 +112,7 @@ export class SpaceGame extends Game {
 
         for (let player of this.players) {
             this.physicsSystem.add(player.physicsModel);
-            player.renderObject.applyConfig('engineStart');
+            player.renderObject.applyConfig('engineOff');
             player.update();
         }
 
