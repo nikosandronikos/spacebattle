@@ -2,12 +2,20 @@ import {Keyboard} from '../2dGameUtils';
 import {Game} from '../2dGameUtils';
 import {Rect} from '../2dGameUtils';
 
-import {RenderObject, Renderer} from '../renderer';
+import {RenderObject, RenderText, Renderer} from '../renderer';
 
 import {PhysicsSystem} from '../physics';
 
 import {createPlayerFromConfig} from './gameobject';
-//import {createRenderText} from '../RenderObject';
+
+const textStyle = {
+    fontFamily:     'Share Tech Mono, Serif',
+    fontVariant:    'small-caps',
+    fontSize:       64,
+    fill:           0x2D6E54FF,
+    strokeThickness: 4,
+    align:          'center'
+};
 
 function pickAStar(layerNum) {
     const starCols = [
@@ -38,6 +46,8 @@ export class SpaceGame extends Game {
 
         this.mainView = this.renderer.createViewPort(new Rect(0, 0, renderer.bounds.x, renderer.bounds.y));
 
+        this.uiLayer = this.renderer.createScreenLayer();
+
         const nStarDefs = 12;
 
         for (let layer = 25, layerNum = 0; layerNum < 3; layer *= 2, layerNum++) {
@@ -52,13 +62,11 @@ export class SpaceGame extends Game {
             }
         }
 
-
-
         this.playerLayer = this.mainView.createLayer();
 
         this.players = [
             createPlayerFromConfig(this.physicsSystem, {
-                "sprite": RenderObject.createFromConfig('uship', this.playerLayer),
+                "sprite": new RenderObject('uship', this.playerLayer),
                 "physics": {
                     "position": {"x": 300, "y": 50},
                     "boundingRadius":   22,
@@ -81,7 +89,7 @@ export class SpaceGame extends Game {
                 }
             }),
             createPlayerFromConfig(this.physicsSystem, {
-                "sprite": RenderObject.createFromConfig('uship', this.playerLayer),
+                "sprite": new RenderObject('uship', this.playerLayer),
                 "physics": {
                     "position": {"x": 600, "y": 500},
                     "boundingRadius":   22,
@@ -157,8 +165,8 @@ export class SpaceGame extends Game {
             case 'start':
             case 'pause':
             case 'end':
-                //this.statusText.remove();
-                //this.statusText = null;
+                this.statusText.remove();
+                this.statusText = null;
                 break;
         }
 
@@ -166,7 +174,7 @@ export class SpaceGame extends Game {
             case 'start':
                 this.nextRAF = this.startGameLoop;
                 console.log('Get Ready...');
-                //this.statusText = createRenderText('Get Ready...', 8).moveTo(30,50);
+                this.statusText = new RenderText('Get Ready...', textStyle, this.uiLayer) .center(new Rect(0, 0, this.renderer.width, this.renderer.height));
                 break;
             case 'run':
                 this.resetTiming();
@@ -177,12 +185,12 @@ export class SpaceGame extends Game {
                 Keyboard.ignoreUntilReleased(Keyboard.KEY_ESC);
                 this.nextRAF = this.pausedGameLoop
                 console.log('Paused.');
-                //this.statusText = createRenderText('Paused.', 8).moveTo(40,50);
+                this.statusText = new RenderText('Paused.', textStyle, this.uiLayer) .center(new Rect(0, 0, this.renderer.width, this.renderer.height));
                 break;
             case 'end':
                 this.nextRAF = this.endGameLoop;
                 console.log('Game Over.');
-                //this.statusText = createRenderText('Game Over.', 8).moveTo(35,50);
+                this.statusText = new RenderText('Game Over.', textStyle, this.uiLayer) .center(new Rect(0, 0, this.renderer.width, this.renderer.height));
                 break;
         }
 
@@ -203,8 +211,8 @@ export class SpaceGame extends Game {
         if (Keyboard.anyKeyDown()) {
             this.changeMode('run');
         }
-        this.render();
         this.rAFId = window.requestAnimationFrame(this.nextRAF.bind(this));
+        this.render();
     }
 
     pausedGameLoop(time) {
@@ -217,6 +225,7 @@ export class SpaceGame extends Game {
             this.changeMode('run');
         }
         this.rAFId = window.requestAnimationFrame(this.nextRAF.bind(this));
+        this.render();
     }
 
     endGameLoop(time) {
@@ -224,6 +233,7 @@ export class SpaceGame extends Game {
         console.log(`skipped updates (good) = ${this.skippedUpdates}`);
         console.log(`multi updates (bad) = ${this.multiUpdates}`);
         console.log(`max multi update = ${this.maxMultiUpdate}`);    
+        this.render();
         this.end();
     }
 
