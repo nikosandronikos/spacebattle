@@ -102,9 +102,9 @@ class MotionTracker extends PositionVector {
 }
 
 export class PhysicsModel {
-    constructor(system, boundingCircleR, mass, position) {
+    constructor(system, boundingCircleR, mass, position, motion=null) {
         this.system = system;
-        this.motion = new MotionTracker(position);
+        this.motion = new MotionTracker(position, motion);
         this.boundingCircleR = boundingCircleR;
         this.mass = mass;
         this.thrusters = [];
