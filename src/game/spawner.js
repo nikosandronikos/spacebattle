@@ -1,6 +1,6 @@
 import {Point, Vector2d} from '../2dGameUtils';
 
-class Spawner {
+export class Spawner {
     constructor(scenario, spawnDfn) {
         this.scenario = scenario;
         this.spawn = spawnDfn.spawn;
@@ -60,7 +60,6 @@ class Spawner {
                 yOffset = 0;
 
         if (this.spawnOffset !== null) {
-            console.log(this.spawnOffset);
             xOffset += Math.random() * (this.spawnOffset.x * 2) - this.spawnOffset.x;
             yOffset += Math.random() * (this.spawnOffset.y * 2) - this.spawnOffset.y;
         }
@@ -69,7 +68,6 @@ class Spawner {
         if (this.randArcAngle !== null) {
             // modify spawnDirection
             const modAngle = Math.random() * this.randArcAngle - this.randArcAngle / 2;
-            console.log(`modAngle = ${modAngle}`);
             direction =
                 this.spawnDirection.copy().rotate(modAngle);
         } else {
