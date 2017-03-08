@@ -4,42 +4,18 @@ import {Keyboard} from '../2dGameUtils';
 
 import {PhysicsModel} from '../physics/physics';
 
-// This is a specialsied player object, but ultimately I want to generalise
-// this but allow input from different sources.
-/*
-class Universe {
-    constructor() {
-        this.players = [];
-        this.robots = [];
-        this.inanimate = [];
-    }
-
-    // pass in an object with the following keys:
-    // { render: {asset, size}, physics: {mass}, controls: {}}
-    function addPlayer(config) {
-        const player =
-            new PlayerObject(
-                createRenderObject(config.render.asset, config.render.size),
-                new PhysicsModel(config.render.size, config.physics.mass)
-            );
-        this.players.push(player);
-    }
-}
-*/
-
 export class GameObject {
     constructor(renderObject, physicsModel, stats) {
+        this.name = 'GameObject';
         this.renderObject = renderObject
         this.physicsModel = physicsModel;
         this.stats = stats;
     }
 
-    update() {
-    }
-
     damage(hp) {
         const oldHP = this.stats.hp;
         this.stats.hp -= hp;
+        console.log(`${this.name} took ${hp} damage, now at ${this.stats.hp} hp.`);
         if (this.stats.hp <= 0) {
             this.stats.hp = 0;
             this.notifyObservers('death', oldHP, this.stats.hp); 
@@ -47,15 +23,23 @@ export class GameObject {
         }
         this.notifyObservers('damage', oldHP, this.stats.hp); 
     }
+
+    updateRenderer() {
+        this.renderObject.rotate(this.physicsModel.rotateAngle);
+        this.renderObject.moveTo(this.physicsModel.position.x, this.physicsModel.position.y);
+    }
 }
 mixin(GameObject, ObservableMixin);
+
+let aiCounter = 0;
 
 class AIObject extends GameObject {
     constructor(renderObject, physicsModel, controllerFn, stats) {
         super(renderObject, physicsModel, stats);
+        this.name = `AI_${aiCounter++}`;
         this.target = undefined;
         this.controllerFn = controllerFn.bind(this);
-
+        this.updateRenderer();
     }
 
     update() {
@@ -63,11 +47,15 @@ class AIObject extends GameObject {
     }
 }
 
+let controlledCounter = 0;
+
 class ControlledObject extends GameObject {
     constructor(renderObject, physicsModel, stats) {
         super(renderObject, physicsModel, stats);
+        this.name = `Player_${controlledCounter++}`;
         this.controlBindings = [];
         this.target = undefined;
+        this.updateRenderer();
     }
 
     bindKeyboardControl(key, actionFn, extraParams = []) {
@@ -84,10 +72,6 @@ class ControlledObject extends GameObject {
 
         for (let binding of this.controlBindings)
             binding();
-
-        this.renderObject.rotate(this.physicsModel.rotateAngle);
-        this.renderObject.moveTo(this.physicsModel.position.x, this.physicsModel.position.y);
-
      }
 }
 
@@ -114,6 +98,7 @@ const PlayerControl = {
         this.physicsModel.thruster(i).firing = keyState;
     },
     "fireCannon": function () {
+        if (keyState) this.fireCannon();
     },
     "tractor": function(keyState) {
         if (keyState) {
@@ -161,7 +146,6 @@ export function createPlayerFromConfig(physicsSystem, config) {
             physicsModel,
             config.stats
         );
-    player.renderObject.moveTo(config.physics.position.x, config.physics.position.y);
 
     physicsModel.addObserver('collision', playerCollisionHandler, player);
 

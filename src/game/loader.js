@@ -1,5 +1,5 @@
 import {Renderer} from '../renderer';
-import {RendererAssets} from '../../assets/config.js';
+import {rendererAssets, gameData, demoScenario} from '../../assets/config.js';
 
 import {SpaceGame} from './spacegame';
 
@@ -9,11 +9,11 @@ export const GameLoader = {
     },
 
     loadAssets: function(onCompleteFn) {
-        Renderer.loadAssets(RendererAssets, onCompleteFn);
+        Renderer.loadAssets(rendererAssets, onCompleteFn);
     },
 
     start: function() {
-        this.game = new SpaceGame(Renderer);
-        this.game.run();
+        this.game = new SpaceGame(Renderer, gameData);
+        this.game.run(demoScenario);
     }
 };
