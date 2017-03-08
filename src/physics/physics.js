@@ -18,35 +18,48 @@ function mod(v, m) {
 }
 
 export class PhysicsSystem {
-    constructor(dimensions) {
+    constructor(dimensionsRect=null) {
         this.collisionResolver = new CollisionResolver();
         this.models = [];
-        this.dimensions =
-            new Rect(dimensions.minX, dimensions.minY, dimensions.maxX, dimensions.maxY);
+        if (dimensionsRect !== null) this.setBoundaries(dimensionsRect);
+    }
+
+    setBoundaries(dimensionsRect) {
+        // Boundaries must all point in clockwise direction as
+        // various routines depend on this for optimisations.
+        // The Rect class does ensure that the points are oriented
+        // correctly for this to be always true.
         this.boundaries = [
             PositionVector.createFromPoints(
-                new Point(dimensions.minX, dimensions.minY),
-                new Point(dimensions.maxX, dimensions.minY)
+                new Point(dimensionsRect.x1, dimensionsRect.y1),
+                new Point(dimensionsRect.x2, dimensionsRect.y1)
             ),
             PositionVector.createFromPoints(
-                new Point(dimensions.maxX, dimensions.minY),
-                new Point(dimensions.maxX, dimensions.maxY)
+                new Point(dimensionsRect.x2, dimensionsRect.y1),
+                new Point(dimensionsRect.x2, dimensionsRect.y2)
             ),
             PositionVector.createFromPoints(
-                new Point(dimensions.maxX, dimensions.maxY),
-                new Point(dimensions.minX, dimensions.maxY)
+                new Point(dimensionsRect.x2, dimensionsRect.y2),
+                new Point(dimensionsRect.x1, dimensionsRect.y2)
             ),
             PositionVector.createFromPoints(
-                new Point(dimensions.minX, dimensions.maxY),
-                new Point(dimensions.minX, dimensions.minY)
+                new Point(dimensionsRect.x1, dimensionsRect.y2),
+                new Point(dimensionsRect.x1, dimensionsRect.y1)
             )
         ];
 
+        this.collisionResolver.clearBoundaries();
         this.boundaries.forEach(line => this.collisionResolver.registerBoundary(line));
     }
 
-    dimensions(minX, minY, maxX, maxY) {
-        this.dimensions = new Rect(minX, minY, maxX, maxY);
+    getBoundary(name) {
+        switch (name) {
+            case 'top': return this.boundaries[0];
+            case 'bottom': return this.boundaries[2];
+            case 'left': return this.boundaries[1];
+            case 'right': return this.boundaries[3];
+        }
+        return null;
     }
 
     add(model) {
@@ -153,8 +166,6 @@ export class PhysicsModel {
     }
 
     move() {
-        const worlddim = this.system.dimensions;
-
         if (this.motion.vector.length > maxSpeed)
             this.motion.vector.normalise().multiply(maxSpeed);
 

@@ -136,28 +136,27 @@ class BoundaryCollision {
         const collisionPoint = a.motion.pointAt(this.time);
         const endPoint = a.motion.endPoint();
         const newP = new Point(0,0);
-        const sysDim = a.system.dimensions;
 
         if (this.line.vector.y == 0) {
             // horizontal boundary
             newP.x = collisionPoint.x;
-            if (endPoint.y >= this.line.position.y) {
-                // passing 'upwards' through the line
-                newP.y = sysDim.y1 + BoundaryCollision.passThroughOffset;
-            } else if (endPoint.y <= this.line.position.y) {
-                newP.y =  sysDim.y2 - BoundaryCollision.passThroughOffset;
+            if (this.line.vector.x > 0) {
+                // Right to left, so a top boundary, must be passing upwards
+                newP.y = a.system.getBoundary('bottom').position.y - BoundaryCollision.passThroughOffset;
             } else {
-                throw 'Do not seem to be passing through a horizontal boundary';
+                // Bottom boundary, must be passing downwards
+                newP.y = a.system.getBoundary('top').position.y + BoundaryCollision.passThroughOffset;
             }
         } else if (this.line.vector.x == 0) {
             // vertical boundary
             newP.y = collisionPoint.y;
-            if (endPoint.x >= this.line.position.x) {
-                newP.x = sysDim.x1 + BoundaryCollision.passThroughOffset;
-            } else if (endPoint.x <= this.line.position.x) {
-                newP.x = sysDim.x2 - BoundaryCollision.passThroughOffset;
+
+            if (this.line.vector.y > 0) {
+                // Top to bottom, so must be left boundary
+                newP.x = a.system.getBoundary('right').position.x + BoundaryCollision.passThroughOffset;
             } else {
-                throw 'Do not seem to be passing through a vertical boundary';
+                // Right boundary
+                newP.x = a.system.getBoundary('left').position.x - BoundaryCollision.passThroughOffset;
             }
         } else {
             throw 'Not a horizontal or vertical line.'
@@ -200,6 +199,10 @@ export class CollisionResolver {
 
     registerBoundary(boundaryPositionVector) {
         this.boundaryLines.push(boundaryPositionVector);
+    }
+
+    clearBoundaries() {
+        this.boundaryLines = [];
     }
 
     registerPhysicsModel(physicsModel) {
