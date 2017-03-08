@@ -47,6 +47,7 @@ export class Scenario {
         this.config = scenarioCfg;
         this.worldState = new WorldState();
 
+        // generate stars
         this.mainView = this.game.renderer.createViewPort(
             new Rect(0, 0, this.game.renderer.bounds.x, this.game.renderer.bounds.y)
         );
@@ -59,8 +60,6 @@ export class Scenario {
         this.playerLayer = this.mainView.createLayer();
         this.layers['player'] = this.playerLayer;
 
-        // FIXME: Support scenario config of player spawns rather than this
-        // hard coded stuff.
         this.worldState.players.push(
             createPlayerFromConfig(this.game.physicsSystem, {
                 sprite: new RenderObject('uship', this.playerLayer),
@@ -127,6 +126,52 @@ export class Scenario {
     }
 
     createMapObject(cfg) {
+        console.log(`createMapObject of type ${cfg.type}`);
+        switch (cfg.type) {
+            case 'spawn':
+                this.spawns.push(new Spawner(this, cfg));
+                break;
+            case 'prop':
+                this.createProp(
+                    cfg.prop,
+                    cfg.position,
+                    'motion' in cfg ? cfg.motion : null,
+                    cfg.layer
+                ); 
+                break;
+            case 'propField':
+                this.createPropField(cfg);
+                break;
+        }
+    }
+
+    createPropField(fieldCfg) {
+        // FIXME: For some reason, if propField and props exist in the same 
+        // layer, and the props are defined after the propField, then the
+        // props do not show. I have no idea why.
+        for (let i = 0; i < fieldCfg.number; i++) {
+            const x = fieldCfg.position.x + Math.random() * (fieldCfg.spawnOffset.x * 2) - fieldCfg.spawnOffset.x;
+            const y = fieldCfg.position.y + Math.random() * (fieldCfg.spawnOffset.y * 2) - fieldCfg.spawnOffset.y;
+            let propName = fieldCfg.prop;
+
+            if (Array.isArray(propName)) {
+                propName = propName[~~(Math.random() * propName.length)];
+            }
+            const prop = this.gameData.props[propName];
+
+            if ('physics' in prop) {
+                // TODO: Support motion
+                this.createProp(propName, {x, y}, {x:0, y:0}, fieldCfg.layer);
+            } else {
+                // If no physics, this is just a visual thing with no
+                // update method and no stats at all.
+                this.layers[fieldCfg.layer].addSprite(x, y, prop.sprite);
+            }
+        }
+    }
+
+    createProp(propName, position, motion, layerName) {
+        const propCfg = this.gameData.props[propName];        
         console.log(`Creating prop ${propCfg.sprite} at ${position.x},${position.y} in ${layerName}`);
         if ('physics' in propCfg) {
             this.worldState.props.push(
@@ -143,6 +188,7 @@ export class Scenario {
                 )
             );
         } else {
+            console.log(`${position.x}, ${position.y}`);
             this.layers[layerName].addSprite(position.x, position.y, propCfg.sprite);
         }
     }
