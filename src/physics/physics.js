@@ -113,6 +113,7 @@ export class PhysicsModel {
         this.rotateAngle = 0;
         this.otherForce = [];
         this.collidable = true;
+        this.system.add(this);
     }
 
     createThruster(power, angle_vector) {
