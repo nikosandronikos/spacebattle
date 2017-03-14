@@ -97,13 +97,17 @@ class ModelCollision {
 
         const remainingTime = 1 - this.time;
 
+        Log.write('collision', a.name, b.name);
+
         a.motion.position = aMoved;
         a.motion.vector = newAVector;
         a.motion.time = remainingTime;
+        Log.write('aMotion', a.motion);
 
         b.motion.position = bMoved;
         b.motion.vector = newBVector;
         b.motion.time = remainingTime;
+        Log.write('bMotion', b.motion);
 
         a.notifyObservers('collision', b, aOrigMotion, a.motion);
         b.notifyObservers('collision', a, bOrigMotion, b.motion);

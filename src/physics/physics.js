@@ -1,6 +1,6 @@
 import {Rect, Point, Vector2d, PositionVector} from '../2dGameUtils';
 import {mixin, ObservableMixin} from '../2dGameUtils';
-
+import {Log} from '../2dGameUtils';
 import {CollisionResolver} from './collision';
 
 /* Physics module
@@ -114,6 +114,8 @@ class MotionTracker extends PositionVector {
     }
 }
 
+let physicsModelCount = 0;
+
 export class PhysicsModel {
     constructor(system, boundingCircleR, mass, position, motion=null) {
         this.system = system;
@@ -127,6 +129,7 @@ export class PhysicsModel {
         this.otherForce = [];
         this.collidable = true;
         this.system.add(this);
+        this.name = `PhysicsModel_${physicsModelCount++}`;
     }
 
     createThruster(power, angle_vector) {
@@ -136,17 +139,21 @@ export class PhysicsModel {
     }
 
     update(timeDelta) {
+        Log.write('physicsUpdate', this.name);
+
         const forceVector = new Vector2d();
 
         this.motion.time = 1.0;
 
         this.otherForce.forEach(e => {
+            Log.write('externalForce', e.vector);
             forceVector.add(e.vector);
             e.duration -= timeDelta;
         });
         this.otherForce = this.otherForce.filter(e => e.duration > 0);
 
         for (let thruster of this.thrusters) {
+            Log.write('thruster', thruster.thrustVector);
             forceVector.add(thruster.thrustVector)
         }
 
@@ -158,11 +165,15 @@ export class PhysicsModel {
         forceVector.divide(this.mass);
         forceVector.divide(1000 / timeDelta);
 
+        Log.write('forceVector', forceVector);
+
         this.motion.vector.add(forceVector);
 
         if (this.motion.vector.length > maxSpeed) {
             this.motion.vector.normalise().multiply(maxSpeed);
         }
+
+        Log.write('motion', this.motion);
     }
 
     move() {
@@ -170,6 +181,7 @@ export class PhysicsModel {
             this.motion.vector.normalise().multiply(maxSpeed);
 
         this.motion.position.translate(this.motion.vector.copy().multiply(this.motion.time));
+        Log.write('position', this.motion.position);
     }
 
     stop() {

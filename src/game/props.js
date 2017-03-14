@@ -1,5 +1,6 @@
 import {Vector2d} from '../2dGameUtils/';
 import {PHYSICS_PER_SECOND} from '../2dGameUtils';
+import {Log} from '../2dGameUtils';
 
 import {GameObject} from './gameObject.js';
 
@@ -11,6 +12,7 @@ export class AsteroidObject extends GameObject {
         this.name = `Asteroid_${asteroidCounter++}`;
         this.physicsModel.rotate(Math.random() * 2 - 1);
         this.updateRenderer();
+        Log.write('created', this.name, physicsModel.name);
     }
 
     update(timeDelta, worldState) {
@@ -26,6 +28,7 @@ export class PlanetObject extends GameObject {
         super(renderObject, physicsModel, stats);
         this.name = `Planet_${planetCounter++}`;
         this.updateRenderer();
+        Log.write('created', this.name, physicsModel.name);
     }
 
     update(timeDelta, worldState) {

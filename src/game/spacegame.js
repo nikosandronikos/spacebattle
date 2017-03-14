@@ -1,6 +1,7 @@
 import {Keyboard} from '../2dGameUtils';
 import {Game} from '../2dGameUtils';
 import {Rect} from '../2dGameUtils';
+import {Log} from '../2dGameUtils';
 
 import {RenderObject, RenderText, Renderer} from '../renderer';
 
@@ -20,6 +21,7 @@ const textStyle = {
 export class SpaceGame extends Game {
     constructor(renderer, gameData) {
         super();
+        Log.init('ws://localhost:9000');
         this.renderer = renderer;
         this.uiLayer = this.renderer.createScreenLayer();
         this.physicsSystem = new PhysicsSystem();
@@ -33,6 +35,8 @@ export class SpaceGame extends Game {
         this.renderer.setBounds(worldBounds.width, worldBounds.height);
         this.physicsSystem.setBoundaries(worldBounds);
 
+        Log.write('world', worldBounds);
+
         this.changeMode('start');
 
         document.addEventListener('focus', Keyboard.resetAllKeys);
@@ -45,9 +49,12 @@ export class SpaceGame extends Game {
         super.end();
         window.removeEventListener('keydown', Keyboard.keydown_handler);
         window.removeEventListener('keyup', Keyboard.keyup_handler);
+        Log.write('end');
+        Log.close();
     }
 
     update(time) {
+        Log.write('frame', time);
         this.scenario.update(this.physicsFrameTime);
         this.physicsSystem.update(this.physicsFrameTime);
     }

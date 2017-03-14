@@ -1,6 +1,7 @@
 import {mixin, ObservableMixin} from '../2dGameUtils';
 import {Vector2d} from '../2dGameUtils';
 import {Keyboard} from '../2dGameUtils';
+import {Log} from '../2dGameUtils';
 
 import {PhysicsModel} from '../physics/physics';
 
@@ -40,6 +41,7 @@ class AIObject extends GameObject {
         this.target = undefined;
         this.controllerFn = controllerFn.bind(this);
         this.updateRenderer();
+        Log.write('created', this.name, physicsModel.name);
     }
 
     update() {
@@ -56,6 +58,7 @@ class ControlledObject extends GameObject {
         this.controlBindings = [];
         this.target = undefined;
         this.updateRenderer();
+        Log.write('created', this.name, physicsModel.name);
     }
 
     bindKeyboardControl(key, actionFn, extraParams = []) {
