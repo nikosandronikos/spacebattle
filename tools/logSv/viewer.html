@@ -1,0 +1,30 @@
+<!doctype html>
+<meta charset="UTF-8" />
+<script src="viewer.js"></script>
+<style>
+h1 {
+    margin: 0;
+    color: #eee8d5;
+}
+body {
+    background: #073642;
+    color: #2aa198;
+}
+svg#world {
+    height: 95vh;
+    background: #002b36;
+}
+svg > .vector {
+    stroke-width: 0.1;
+}
+#info > p {
+    display: inline-block;
+    margin: 0;
+}
+</style>
+<h1>SpaceBattle Log Viewer</h1>
+<div id="info">
+Frames: <p id="frames"></p>
+</div>
+<svg id="world">
+</svg>

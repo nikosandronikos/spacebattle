@@ -1,5 +1,6 @@
 import {Vector2d, PositionVector, Rect, Point} from '../2dGameUtils';
 import {PriorityQueue} from '../2dGameUtils';
+import {Log} from '../2dGameUtils';
 
 import {PhysicsModel} from './physics';
 

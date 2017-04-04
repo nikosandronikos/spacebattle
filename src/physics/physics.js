@@ -141,6 +141,8 @@ export class PhysicsModel {
     update(timeDelta) {
         Log.write('physicsUpdate', this.name);
 
+        Log.write('position', this.motion.position);
+
         const forceVector = new Vector2d();
 
         this.motion.time = 1.0;
@@ -160,26 +162,30 @@ export class PhysicsModel {
         this.rotateAngle += (this.rotateDirection/ (this.rotateRate / timeDelta));
         forceVector.rotate(this.rotateAngle);
 
-        if (forceVector.length === 0) return;
+        if (forceVector.length !== 0) {
+            forceVector.divide(this.mass);
+            forceVector.divide(1000 / timeDelta);
 
-        forceVector.divide(this.mass);
-        forceVector.divide(1000 / timeDelta);
+            Log.write('forceVector', forceVector);
 
-        Log.write('forceVector', forceVector);
+            this.motion.vector.add(forceVector);
 
-        this.motion.vector.add(forceVector);
+            if (this.motion.vector.length > maxSpeed) {
+                this.motion.vector.normalise().multiply(maxSpeed);
+            }
 
-        if (this.motion.vector.length > maxSpeed) {
-            this.motion.vector.normalise().multiply(maxSpeed);
+            Log.write('motion', this.motion);
         }
 
-        Log.write('motion', this.motion);
+        Log.write('endPhysicsUpdate');
     }
 
     move() {
+        Log.write('move', this.name);
         if (this.motion.vector.length > maxSpeed)
             this.motion.vector.normalise().multiply(maxSpeed);
 
+        Log.write('motion', this.motion);
         this.motion.position.translate(this.motion.vector.copy().multiply(this.motion.time));
         Log.write('position', this.motion.position);
     }
