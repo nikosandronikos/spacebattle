@@ -147,13 +147,8 @@ export class PhysicsModel {
 
         this.motion.time = 1.0;
 
-        this.otherForce.forEach(e => {
-            Log.write('externalForce', e.vector);
-            forceVector.add(e.vector);
-            e.duration -= timeDelta;
-        });
-        this.otherForce = this.otherForce.filter(e => e.duration > 0);
-
+        // Apply forces exerted by this object - will be affected by
+        // rotation angle.
         for (let thruster of this.thrusters) {
             Log.write('thruster', thruster.thrustVector);
             forceVector.add(thruster.thrustVector)
@@ -161,6 +156,14 @@ export class PhysicsModel {
 
         this.rotateAngle += (this.rotateDirection/ (this.rotateRate / timeDelta));
         forceVector.rotate(this.rotateAngle);
+
+        // Apply forces coming from external sources - not affected by rotation.
+        this.otherForce.forEach(e => {
+            Log.write('externalForce', e.vector);
+            forceVector.add(e.vector);
+            e.duration -= timeDelta;
+        });
+        this.otherForce = this.otherForce.filter(e => e.duration > 0);
 
         if (forceVector.length !== 0) {
             forceVector.divide(this.mass);
