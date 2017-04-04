@@ -68,8 +68,7 @@ export class Spawner {
         if (this.randArcAngle !== null) {
             // modify spawnDirection
             const modAngle = Math.random() * this.randArcAngle - this.randArcAngle / 2;
-            direction =
-                this.spawnDirection.copy().rotate(modAngle);
+            direction = this.spawnDirection.copy().rotate(modAngle);
         } else {
             direction = this.spawnDirection;
         }
