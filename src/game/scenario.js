@@ -111,8 +111,8 @@ export class Scenario {
         );
 
         //FIXME: Death of anything is ending the game
-        //this.worldState.players[0].addObserver('death', this.playerDeathHandler, this, 0);
-        //this.worldState.players[1].addObserver('death', this.playerDeathHandler, this, 1);
+        this.worldState.players[0].addObserver('death', this.playerDeathHandler, this, 0);
+        this.worldState.players[1].addObserver('death', this.playerDeathHandler, this, 1);
 
         // fix targetting for now since there's only two ships
         this.worldState.players[0].target = this.worldState.players[1];
@@ -174,7 +174,7 @@ export class Scenario {
         const propCfg = this.gameData.props[propName];        
         console.log(`Creating prop ${propCfg.sprite} at ${position.x},${position.y} in ${layerName}`);
         if ('physics' in propCfg) {
-            this.worldState.props.push(
+            const gameObject =
                 new propCfg.controller(
                     new RenderObject(propCfg.sprite, this.layers[layerName]),
                     new PhysicsModel(
@@ -185,8 +185,9 @@ export class Scenario {
                         motion
                     ),
                     propCfg.stats
-                )
-            );
+                );
+            const linkedListNode = this.worldState.props.push(gameObject);
+            gameObject.addObserver('death', this.propDeathHandler, this, linkedListNode);
         } else {
             console.log(`${position.x}, ${position.y}`);
             this.layers[layerName].addSprite(position.x, position.y, propCfg.sprite);
@@ -231,6 +232,11 @@ export class Scenario {
         console.log('someone died');
         //createRenderText(`Player ${playerIndex} died.`, 8).moveTo(35, 40);
         this.game.changeMode('end');
+    }
+
+    propDeathHandler(linkedListNode) {
+        console.log(`got notification that ${linkedListNode.data.name} died.`);
+        this.worldState.props.remove(linkedListNode);
     }
 }
 

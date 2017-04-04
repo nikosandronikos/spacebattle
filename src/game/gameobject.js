@@ -5,12 +5,38 @@ import {Log} from '../2dGameUtils';
 
 import {PhysicsModel} from '../physics/physics';
 
+// Must have a GameObject, or subclass, bound.
+function gameObjectCollisionHandler(b, origMotion, newMotion) {
+    console.log(`${this.name} and ${physOwners[b.name].name} involved in collision.`);
+    let angleDiff = origMotion.vector.angleTo(newMotion.vector);
+    if (angleDiff > Math.PI) angleDiff -= Math.PI;
+
+    const v1 = origMotion.vector.length;
+    const v2 = newMotion.vector.length;
+
+    const maxV = Math.max(v1, v2);
+    const minV = Math.min(v1, v2);
+
+    const velocityDiff = minV === 0 ? maxV : maxV / minV;
+
+    const massDiff = b.mass / this.physicsModel.mass;
+
+    this.damage(10 * (angleDiff + 0.2) * velocityDiff * massDiff);
+}
+
+const physOwners = {};
+
 export class GameObject {
     constructor(renderObject, physicsModel, stats) {
         this.name = 'GameObject';
         this.renderObject = renderObject
         this.physicsModel = physicsModel;
         this.stats = stats;
+        this.physicsModel.addObserver('collision', gameObjectCollisionHandler, this);
+
+        // Useful for debugging, allow looking up GameObject from
+        // physicsModel name.
+        physOwners[physicsModel.name] = this;
     }
 
     damage(hp) {
@@ -116,24 +142,6 @@ const PlayerControl = {
     }
 }
 
-// Must have a ControlledObject, or similar, bound.
-function playerCollisionHandler(b, origMotion, newMotion) {
-    let angleDiff = origMotion.vector.angleTo(newMotion.vector);
-    if (angleDiff > Math.PI) angleDiff -= Math.PI;
-
-    const v1 = origMotion.vector.length;
-    const v2 = newMotion.vector.length;
-
-    const maxV = Math.max(v1, v2);
-    const minV = Math.min(v1, v2);
-
-    const velocityDiff = minV === 0 ? maxV : maxV / minV;
-
-    const massDiff = b.mass / this.physicsModel.mass;
-
-    this.damage(10 * (angleDiff + 0.2) * velocityDiff * massDiff);
-}
-
 export function createPlayerFromConfig(physicsSystem, config) {
     const physics = config.physics;
     const control = config.control;
@@ -149,8 +157,6 @@ export function createPlayerFromConfig(physicsSystem, config) {
             physicsModel,
             config.stats
         );
-
-    physicsModel.addObserver('collision', playerCollisionHandler, player);
 
     for (let key in control) {
         switch (key) {
