@@ -48,7 +48,7 @@ export class PlanetObject extends GameObject {
                     Vector2d.createFromPoints(
                         obj.physicsModel.position,
                         this.physicsModel.position
-                    ).normalise().multiply(1 - dist / planetGravityDist).multiply(obj.physicsModel.mass),
+                    ).normalise().multiply(1.5 * (1 - dist / planetGravityDist)).multiply(obj.physicsModel.mass),
                     1000 / PHYSICS_PER_SECOND // one physics frame. FIXME: support as default?
                 );
             }
