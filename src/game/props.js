@@ -38,9 +38,6 @@ export class PlanetObject extends GameObject {
             if (obj === this) continue;
             const dist = this.physicsModel.position.distanceTo(obj.physicsModel.position);
             if (dist < planetGravityDist) {
-                console.log(obj.name);
-                console.log(`planet at: ${this.physicsModel.position.x}, ${this.physicsModel.position.y}`);
-                console.log(`${obj.name} at: ${obj.physicsModel.position.x}, ${obj.physicsModel.position.y}`);
                 // Multiplying force by mass to cancel out the effect of mass
                 // when applying the forice to the model (because gravity
                 // shouldn't be affected by mass).
@@ -51,7 +48,7 @@ export class PlanetObject extends GameObject {
                     Vector2d.createFromPoints(
                         obj.physicsModel.position,
                         this.physicsModel.position
-                    ).normalise().multiply(Math.max(2)).multiply(obj.physicsModel.mass), //200, planetGravityDist - dist)),
+                    ).normalise().multiply(1 - dist / planetGravityDist).multiply(obj.physicsModel.mass),
                     1000 / PHYSICS_PER_SECOND // one physics frame. FIXME: support as default?
                 );
             }
