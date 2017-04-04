@@ -18,7 +18,8 @@
     "babel-plugin-transform-es2015-modules-commonjs": "^6.23.0",
     "copy-webpack-plugin": "^4.0.1",
     "webpack": "^2.2.1",
-    "webpack-dev-server": "^2.3.0"
+    "webpack-dev-server": "^2.3.0",
+    "ws": "^2.2.0"
   },
   "dependencies": {}
 }
