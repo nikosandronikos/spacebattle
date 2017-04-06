@@ -237,6 +237,7 @@ export class Scenario {
     propDeathHandler(linkedListNode) {
         console.log(`got notification that ${linkedListNode.data.name} died.`);
         this.worldState.props.remove(linkedListNode);
+        linkedListNode.data.destroy();
     }
 }
 
