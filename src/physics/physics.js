@@ -1,5 +1,6 @@
 import {Rect, Point, Vector2d, PositionVector} from '../2dGameUtils';
 import {mixin, ObservableMixin} from '../2dGameUtils';
+import {LinkedList} from '../2dGameUtils';
 import {Log} from '../2dGameUtils';
 import {CollisionResolver} from './collision';
 
@@ -20,7 +21,7 @@ function mod(v, m) {
 export class PhysicsSystem {
     constructor(dimensionsRect=null) {
         this.collisionResolver = new CollisionResolver();
-        this.models = [];
+        this.models = new LinkedList();
         if (dimensionsRect !== null) this.setBoundaries(dimensionsRect);
     }
 
@@ -62,9 +63,25 @@ export class PhysicsSystem {
         return null;
     }
 
+    // Register a physicsModel with the physics system. This will cause the
+    // physicsModel to be updated each frame and interact with other
+    // physicsModels in the system.
+    // Returns a systemNode that tracks entries for this physicsModel
+    // within the world and collision tracker.
     add(model) {
-        this.models.push(model);
-        this.collisionResolver.registerPhysicsModel(model);
+        return {
+            modelListNode: this.models.push(model),
+            collisionNode: this.collisionResolver.registerPhysicsModel(model)
+        };
+    }
+
+    remove(systemNode) {
+        // This is the gist of what I want to do. Need to wrap the physicsModel
+        // in a class that tracks it's instance in the world and in the
+        // collision resolver, so that it can be removed efficiently.
+        // The instruction to remove of each comes from the physicsModel
+        this.collisionResolver.removePhysicsModel(systemNode.collisionNode);
+        this.models.remove(systemNode.modelListNode);
     }
 
     update(timeDelta) {
@@ -128,8 +145,24 @@ export class PhysicsModel {
         this.rotateAngle = 0;
         this.otherForce = [];
         this.collidable = true;
-        this.system.add(this);
+        this.systemNode = this.system.add(this);
         this.name = `PhysicsModel_${physicsModelCount++}`;
+        this.collidable = true;
+    }
+
+    destroy() {
+        // Make not collidable so the collision tracker skips over
+        // this physicsModel while it still holds some references this frame
+        this.collidable = false;
+
+        this.removeObservers();
+        this.system.remove(this.systemNode);
+        delete this.systemNode;
+        delete this.system;
+        delete this.motion;
+        delete this.boundingCircleR;
+        delete this.thrusters;
+        delete this.otherForce;
     }
 
     createThruster(power, angle_vector) {
