@@ -1,5 +1,6 @@
 import {Vector2d, PositionVector, Rect, Point} from '../2dGameUtils';
 import {PriorityQueue} from '../2dGameUtils';
+import {LinkedList} from '../2dGameUtils';
 import {Log} from '../2dGameUtils';
 
 import {PhysicsModel} from './physics';
@@ -110,6 +111,10 @@ class ModelCollision {
         b.motion.time = remainingTime;
         Log.write('bMotion', b.motion);
 
+        // FIXME: Bug here if object b is destroyed, then the collisionHandler
+        // for object a refers to a destroyed (undefined) object.
+        // Solution is probably to combine the collision handling for both
+        // objects involved in the collision into one handler.
         a.notifyObservers('collision', b, aOrigMotion, a.motion);
         b.notifyObservers('collision', a, bOrigMotion, b.motion);
 
@@ -192,7 +197,7 @@ export class CollisionResolver {
         // The known models.
         // Each may have multiple collisions detected - but only the first
         // is used.
-        this.trackedModels = [];
+        this.trackedModels = new LinkedList();
 
         // PriorityQueue of collisions so they can be resolved in time
         // order.
@@ -212,8 +217,12 @@ export class CollisionResolver {
 
     registerPhysicsModel(physicsModel) {
         const tracker = new TrackedModel(physicsModel);
-        this.trackedModels.push(tracker);
+        tracker.resolverNode = this.trackedModels.push(tracker);
         return tracker;
+    }
+
+    removePhysicsModel(trackedModel) {
+        this.trackedModels.remove(trackedModel.resolverNode);
     }
 
     // Find collisions between all registered objects.
@@ -229,13 +238,13 @@ export class CollisionResolver {
         for (let tracker of this.trackedModels)
             tracker.emptyCollisionList();
 
-        for (let i = 0; i < this.trackedModels.length; i++) {
-            const a = this.trackedModels[i];
+        for (let aNode of this.trackedModels.iterateNodes()) {
+            const a = aNode.data;
+            if (a.physicsModel.collidable === false) continue;
 
             this._checkBoundaryCollisionsForModel(a);
-
-            for (let j = i + 1; j < this.trackedModels.length; j++) {
-                const b = this.trackedModels[j];
+            for (let b of this.trackedModels.iterateFrom(aNode.next)) {
+                if (b.physicsModel.collidable === false) continue;
                 const collisionResult =
                     CollisionResolver.checkModelCollision(a.physicsModel, b.physicsModel);
                 if (collisionResult !== false) {
@@ -251,13 +260,15 @@ export class CollisionResolver {
     // Find collisions for one model (a) against all other models that have
     // been registered.
     _updateTrackedModelCollisions(a) {
+        if (a.physicsModel.collidable === false) return;
+
         a.emptyCollisionList();
         this._checkBoundaryCollisionsForModel(a);
 
         for (let b of this.trackedModels) {
-            if (a === b) continue;
+            if (a === b || b.physicsModel.collidable === false) continue;
 
-             const collisionResult =
+            const collisionResult =
                 CollisionResolver.checkModelCollision(a.physicsModel, b.physicsModel);
             if (collisionResult !== false) {
                 const c = createCollision(a, b, collisionResult);
@@ -269,6 +280,7 @@ export class CollisionResolver {
     }
 
     _checkBoundaryCollisionsForModel(a) {
+        if (a.physicsModel.collidable === false) return;
         if (!(a instanceof TrackedModel)) {
             console.log('blergh');
         }
@@ -301,9 +313,16 @@ export class CollisionResolver {
             const timeLeft = 1.0 - collision.time;
             if (timeLeft <= 0.0) return;
 
+            // Note: the objects in moved may have been taken out of the physics
+            // system as a result of being destroyed. Those physicsModels
+            // will have already been removed from the collision tracker and
+            // destroyed in the physics system. As part of being destroyed the
+            // object will be marked not collidable, so that makes it safe
+            // for us to continue processing with the references we hold here
+            // for the remainder of this frame.
             const moved = collision.resolve();
 
-            // remove all other collisions for A and B from priority queue.
+            // Remove all other collisions for A and B from priority queue.
             // Those ones will never happen now that A and B are on a different
             // trajectory.
             collision.getConnectedCollisions().forEach(e => this.collisions.remove(e));
@@ -315,7 +334,7 @@ export class CollisionResolver {
             // A and B (if they do indeed collide). This shouldn't be a problem
             // as the first instance will be resolved, then the second will
             // be discarded. But it might be nice to not have the duplicate at all.
-            moved.forEach(e => this._updateTrackedModelCollisions(e));
+            moved.forEach( e => this._updateTrackedModelCollisions(e));
 
             // Now the PriorityQueue is likely to have totally changed.
             // But we keep working our way through until it is empty.
