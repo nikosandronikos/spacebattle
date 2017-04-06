@@ -34,9 +34,15 @@ export class GameObject {
         this.stats = stats;
         this.physicsModel.addObserver('collision', gameObjectCollisionHandler, this);
 
-        // Useful for debugging, allow looking up GameObject from
+        // Useful for debugging - allow looking up GameObject from
         // physicsModel name.
         physOwners[physicsModel.name] = this;
+    }
+
+    destroy() {
+        delete physOwners[this.physicsModel.name];
+        this.physicsModel.destroy();
+        //this.renderObject.destroy();
     }
 
     damage(hp) {
