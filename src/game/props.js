@@ -13,6 +13,7 @@ export class AsteroidObject extends GameObject {
         this.physicsModel.rotate(Math.random() * 2 - 1);
         this.updateRenderer();
         Log.write('created', this.name, physicsModel.name);
+        this.physicsModel.name = this.name;
     }
 
     update(timeDelta, worldState) {
@@ -29,6 +30,7 @@ export class PlanetObject extends GameObject {
         this.name = `Planet_${planetCounter++}`;
         this.updateRenderer();
         Log.write('created', this.name, physicsModel.name);
+        this.physicsModel.name = this.name;
     }
 
     update(timeDelta, worldState) {

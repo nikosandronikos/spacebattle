@@ -7,7 +7,7 @@ import {PhysicsModel} from '../physics/physics';
 
 // Must have a GameObject, or subclass, bound.
 function gameObjectCollisionHandler(b, origMotion, newMotion) {
-    console.log(`${this.name} and ${physOwners[b.name].name} involved in collision.`);
+    console.log(`${this.name} and ${b.name} involved in collision.`);
     let angleDiff = origMotion.vector.angleTo(newMotion.vector);
     if (angleDiff > Math.PI) angleDiff -= Math.PI;
 
@@ -24,8 +24,6 @@ function gameObjectCollisionHandler(b, origMotion, newMotion) {
     this.damage(10 * (angleDiff + 0.2) * velocityDiff * massDiff);
 }
 
-const physOwners = {};
-
 export class GameObject {
     constructor(renderObject, physicsModel, stats) {
         this.name = 'GameObject';
@@ -33,14 +31,10 @@ export class GameObject {
         this.physicsModel = physicsModel;
         this.stats = stats;
         this.physicsModel.addObserver('collision', gameObjectCollisionHandler, this);
-
-        // Useful for debugging - allow looking up GameObject from
-        // physicsModel name.
-        physOwners[physicsModel.name] = this;
+        this.physicsModel.name = this.name;
     }
 
     destroy() {
-        delete physOwners[this.physicsModel.name];
         this.physicsModel.destroy();
         //this.renderObject.destroy();
     }
@@ -74,6 +68,7 @@ class AIObject extends GameObject {
         this.controllerFn = controllerFn.bind(this);
         this.updateRenderer();
         Log.write('created', this.name, physicsModel.name);
+        this.physicsModel.name = this.name;
     }
 
     update() {
@@ -91,6 +86,7 @@ class ControlledObject extends GameObject {
         this.target = undefined;
         this.updateRenderer();
         Log.write('created', this.name, physicsModel.name);
+        this.physicsModel.name = this.name;
     }
 
     bindKeyboardControl(key, actionFn, extraParams = []) {
