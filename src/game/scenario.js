@@ -189,7 +189,6 @@ export class Scenario {
             const linkedListNode = this.worldState.props.push(gameObject);
             gameObject.addObserver('death', this.propDeathHandler, this, linkedListNode);
         } else {
-            console.log(`${position.x}, ${position.y}`);
             this.layers[layerName].addSprite(position.x, position.y, propCfg.sprite);
         }
     }
