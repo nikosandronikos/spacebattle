@@ -58,6 +58,11 @@ class ModelCollision {
     resolve() {
         const   a = this.a.physicsModel,
                 b = this.b.physicsModel;
+
+        if (a.collidable === false || b.collidable === false) {
+            return [this.a, this.b];
+        }
+
         let     aMoved = a.motion.pointAt(this.time),
                 bMoved = b.motion.pointAt(this.time);
 
