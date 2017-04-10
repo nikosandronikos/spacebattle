@@ -13,7 +13,7 @@ const textStyle = {
     fontFamily:     'Share Tech Mono, Serif',
     fontVariant:    'small-caps',
     fontSize:       64,
-    fill:           0x2D6E54FF,
+    fill:           '#2D6E54',
     strokeThickness: 4,
     align:          'center'
 };
