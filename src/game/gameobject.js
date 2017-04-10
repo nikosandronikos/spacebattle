@@ -25,8 +25,9 @@ function gameObjectCollisionHandler(b, origMotion, newMotion) {
 }
 
 export class GameObject {
-    constructor(renderObject, physicsModel, stats) {
+    constructor(scenario, renderObject, physicsModel, stats) {
         this.name = 'GameObject';
+        this.scenario = scenario;
         this.renderObject = renderObject
         this.physicsModel = physicsModel;
         this.stats = stats;
@@ -51,6 +52,12 @@ export class GameObject {
         this.notifyObservers('damage', oldHP, this.stats.hp); 
     }
 
+    die() {
+    }
+
+    update() {
+    }
+
     updateRenderer() {
         this.renderObject.rotate(this.physicsModel.rotateAngle);
         this.renderObject.moveTo(this.physicsModel.position.x, this.physicsModel.position.y);
@@ -61,8 +68,8 @@ mixin(GameObject, ObservableMixin);
 let aiCounter = 0;
 
 class AIObject extends GameObject {
-    constructor(renderObject, physicsModel, controllerFn, stats) {
-        super(renderObject, physicsModel, stats);
+    constructor(scenario, renderObject, physicsModel, controllerFn, stats) {
+        super(scenario, renderObject, physicsModel, stats);
         this.name = `AI_${aiCounter++}`;
         this.target = undefined;
         this.controllerFn = controllerFn.bind(this);
@@ -79,8 +86,8 @@ class AIObject extends GameObject {
 let controlledCounter = 0;
 
 class ControlledObject extends GameObject {
-    constructor(renderObject, physicsModel, stats) {
-        super(renderObject, physicsModel, stats);
+    constructor(scenario, renderObject, physicsModel, stats) {
+        super(scenario, renderObject, physicsModel, stats);
         this.name = `Player_${controlledCounter++}`;
         this.controlBindings = [];
         this.target = undefined;
@@ -144,7 +151,7 @@ const PlayerControl = {
     }
 }
 
-export function createPlayerFromConfig(physicsSystem, config) {
+export function createPlayerFromConfig(scenario, physicsSystem, config) {
     const physics = config.physics;
     const control = config.control;
     const physicsModel = new PhysicsModel(physicsSystem, physics.boundingRadius, physics.mass, physics.position);
@@ -155,6 +162,7 @@ export function createPlayerFromConfig(physicsSystem, config) {
 
     const player =
         new ControlledObject(
+            scenario,
             config.sprite,
             physicsModel,
             config.stats

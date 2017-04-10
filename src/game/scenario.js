@@ -5,7 +5,7 @@ import {Keyboard} from '../2dGameUtils/';
 import {PhysicsModel} from '../physics/physics';
 import {RenderObject} from '../renderer/';
 
-import {AsteroidObject, PlanetObject} from './props.js';
+import {BigAsteroidObject, AsteroidObject, PlanetObject} from './props.js';
 
 import {createPlayerFromConfig} from './gameObject.js';
 import {Spawner} from './spawner.js';
@@ -62,6 +62,7 @@ export class Scenario {
 
         this.worldState.players.push(
             createPlayerFromConfig(
+                this,
                 this.game.physicsSystem,
                 {
                     sprite: new RenderObject('uship', this.playerLayer),
@@ -91,6 +92,7 @@ export class Scenario {
         );
         this.worldState.players.push(
             createPlayerFromConfig(
+                this,
                 this.game.physicsSystem,
                 {
                     "sprite": new RenderObject('uship', this.playerLayer),
@@ -182,6 +184,7 @@ export class Scenario {
         if ('physics' in propCfg) {
             const gameObject =
                 new propCfg.controller(
+                    this,
                     new RenderObject(propCfg.sprite, this.layers[layerName]),
                     new PhysicsModel(
                         this.game.physicsSystem,
@@ -240,9 +243,12 @@ export class Scenario {
     }
 
     propDeathHandler(linkedListNode) {
-        console.log(`got notification that ${linkedListNode.data.name} died.`);
+        const gameObject = linkedListNode.data;
+        console.log(`got notification that ${gameObject.name} died.`);
+        console.log(gameObject.name.substr(0, 8));
+        gameObject.die();
         this.worldState.props.remove(linkedListNode);
-        linkedListNode.data.destroy();
+        gameObject.destroy();
     }
 }
 

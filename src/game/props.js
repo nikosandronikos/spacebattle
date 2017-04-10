@@ -7,16 +7,19 @@ import {GameObject} from './gameObject.js';
 let asteroidCounter = 0;
 
 export class AsteroidObject extends GameObject {
-    constructor(renderObject, physicsModel, stats) {
-        super(renderObject, physicsModel, stats);
+    constructor(scenario, renderObject, physicsModel, stats) {
+        super(scenario, renderObject, physicsModel, stats);
         this.name = `Asteroid_${asteroidCounter++}`;
         this.physicsModel.rotate(Math.random() * 2 - 1);
         this.updateRenderer();
         Log.write('created', this.name, physicsModel.name);
         this.physicsModel.name = this.name;
     }
+};
 
-    update(timeDelta, worldState) {
+export class BigAsteroidObject extends AsteroidObject {
+    constructor(scenario, renderObject, physicsModel, stats) {
+        super(scenario, renderObject, physicsModel, stats);
     }
 };
 
@@ -25,8 +28,8 @@ let planetCounter = 0;
 const planetGravityDist = 500;
 
 export class PlanetObject extends GameObject {
-    constructor(renderObject, physicsModel, stats) {
-        super(renderObject, physicsModel, stats);
+    constructor(scenario, renderObject, physicsModel, stats) {
+        super(scenario, renderObject, physicsModel, stats);
         this.name = `Planet_${planetCounter++}`;
         this.updateRenderer();
         Log.write('created', this.name, physicsModel.name);
