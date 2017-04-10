@@ -61,53 +61,59 @@ export class Scenario {
         this.layers['player'] = this.playerLayer;
 
         this.worldState.players.push(
-            createPlayerFromConfig(this.game.physicsSystem, {
-                sprite: new RenderObject('uship', this.playerLayer),
-                "physics": {
-                    "position": {"x": 300, "y": 50},
-                    "boundingRadius":   22,
-                    "mass":         10,
-                    "rotateRate":   10,
-                    "maxSpeed":     10,
-                    "thrusters": [
-                        {"power": 10, "angle": 0},
-                        {"power": 10, "angle": 180}
-                    ]
-                },
-                "control": {
-                    "thrust":       [Keyboard.KEY_UP, Keyboard.KEY_DOWN],
-                    "rotate_left":  Keyboard.KEY_LEFT,
-                    "rotate_right": Keyboard.KEY_RIGHT,
-                    "fireCannon":      Keyboard.KEY_SPACE,
-                    "fireCannon":      Keyboard.LEFT_SHIFT
-                },
-                stats: {
-                    hp: 100
+            createPlayerFromConfig(
+                this.game.physicsSystem,
+                {
+                    sprite: new RenderObject('uship', this.playerLayer),
+                    "physics": {
+                        "position": {"x": 300, "y": 50},
+                        "boundingRadius":   22,
+                        "mass":         10,
+                        "rotateRate":   10,
+                        "maxSpeed":     10,
+                        "thrusters": [
+                            {"power": 10, "angle": 0},
+                            {"power": 10, "angle": 180}
+                        ]
+                    },
+                    "control": {
+                        "thrust":       [Keyboard.KEY_UP, Keyboard.KEY_DOWN],
+                        "rotate_left":  Keyboard.KEY_LEFT,
+                        "rotate_right": Keyboard.KEY_RIGHT,
+                        "fireCannon":      Keyboard.KEY_SPACE,
+                        "fireCannon":      Keyboard.LEFT_SHIFT
+                    },
+                    stats: {
+                        hp: 100
+                    }
                 }
-            })
+            )
         );
         this.worldState.players.push(
-            createPlayerFromConfig(this.game.physicsSystem, {
-                "sprite": new RenderObject('uship', this.playerLayer),
-                "physics": {
-                    "position": {"x": 600, "y": 500},
-                    "boundingRadius":   22,
-                    "mass":         5,
-                    "rotateRate":   20,
-                    "maxSpeed":     10,
-                    "thrusters": [
-                        {"power": 10, "angle": 0}
-                    ]
-                },
-                "control": {
-                    "thrust":       [Keyboard.KEY_W],
-                    "rotate_left":  Keyboard.KEY_A,
-                    "rotate_right": Keyboard.KEY_D
-                },
-                stats: {
-                    hp: 80
+            createPlayerFromConfig(
+                this.game.physicsSystem,
+                {
+                    "sprite": new RenderObject('uship', this.playerLayer),
+                    "physics": {
+                        "position": {"x": 600, "y": 500},
+                        "boundingRadius":   22,
+                        "mass":         5,
+                        "rotateRate":   20,
+                        "maxSpeed":     10,
+                        "thrusters": [
+                            {"power": 10, "angle": 0}
+                        ]
+                    },
+                    "control": {
+                        "thrust":       [Keyboard.KEY_W],
+                        "rotate_left":  Keyboard.KEY_A,
+                        "rotate_right": Keyboard.KEY_D
+                    },
+                    stats: {
+                        hp: 80
+                    }
                 }
-            })
+            )
         );
 
         //FIXME: Death of anything is ending the game
