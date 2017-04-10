@@ -4,6 +4,9 @@ import {Log} from '../2dGameUtils';
 
 import {GameObject} from './gameObject.js';
 
+// The number of small asteroids to spawn when a large one is destroyed
+const smallAsteroidsInBig = 3;
+
 let asteroidCounter = 0;
 
 export class AsteroidObject extends GameObject {
@@ -20,6 +23,19 @@ export class AsteroidObject extends GameObject {
 export class BigAsteroidObject extends AsteroidObject {
     constructor(scenario, renderObject, physicsModel, stats) {
         super(scenario, renderObject, physicsModel, stats);
+    }
+
+    die() {
+        for(let i = 0; i < smallAsteroidsInBig; i++) {
+            this.scenario.createProp(
+                'smallAsteroid_001',
+                this.physicsModel.position,
+                this.physicsModel.moveVector.copy().rotate(
+                    Math.random() * 160 - 80
+                ),
+                'player'
+            );
+        }
     }
 };
 
