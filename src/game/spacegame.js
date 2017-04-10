@@ -69,7 +69,7 @@ export class SpaceGame extends Game {
             case 'start':
             case 'pause':
             case 'end':
-                this.statusText.remove();
+                this.statusText.destroy();
                 this.statusText = null;
                 break;
         }

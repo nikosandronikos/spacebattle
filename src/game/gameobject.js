@@ -37,7 +37,7 @@ export class GameObject {
 
     destroy() {
         this.physicsModel.destroy();
-        //this.renderObject.destroy();
+        this.renderObject.destroy();
     }
 
     damage(hp) {
