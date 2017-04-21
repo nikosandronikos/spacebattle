@@ -11,7 +11,7 @@ import {CollisionResolver} from './collision';
 
 const zeroVector = new Vector2d();
 
-const maxSpeed = 5;
+const defaultMaxSpeed = 5;
 
 function mod(v, m) {
     const r = v % m;
@@ -134,11 +134,12 @@ class MotionTracker extends PositionVector {
 let physicsModelCount = 0;
 
 export class PhysicsModel {
-    constructor(system, boundingCircleR, mass, position, motion=null) {
+    constructor(system, boundingCircleR, mass, position, motion=null, maxSpeed=defaultMaxSpeed) {
         this.system = system;
         this.motion = new MotionTracker(position, motion);
         this.boundingCircleR = boundingCircleR;
         this.mass = mass;
+        this.maxSpeed = maxSpeed;
         this.thrusters = [];
         this.rotateRate = 10;
         this.rotateDirection = 0;
@@ -206,8 +207,8 @@ export class PhysicsModel {
 
             this.motion.vector.add(forceVector);
 
-            if (this.motion.vector.length > maxSpeed) {
-                this.motion.vector.normalise().multiply(maxSpeed);
+            if (this.motion.vector.length > this.maxSpeed) {
+                this.motion.vector.normalise().multiply(this.maxSpeed);
             }
 
             Log.write('motion', this.motion);
@@ -218,8 +219,8 @@ export class PhysicsModel {
 
     move() {
         Log.write('move', this.name);
-        if (this.motion.vector.length > maxSpeed)
-            this.motion.vector.normalise().multiply(maxSpeed);
+        if (this.motion.vector.length > this.maxSpeed)
+            this.motion.vector.normalise().multiply(this.maxSpeed);
 
         Log.write('motion', this.motion);
         this.motion.position.translate(this.motion.vector.copy().multiply(this.motion.time));

@@ -191,7 +191,8 @@ export class Scenario {
                         propCfg.physics.boundingRadius,
                         propCfg.physics.mass,
                         position,
-                        motion
+                        motion,
+                        propCfg.physics.maxSpeed
                     ),
                     propCfg.stats
                 );
