@@ -113,10 +113,18 @@ class ControlledObject extends GameObject {
      }
 
      fireCannon() {
+        // FIXME: I suspect there's a bug where the collision system isn't clamping
+        // the velocity to the max velocity
+        const trajectory = Vector2d.createFromAngle(this.physicsModel.rotateAngle);
+        const position = this.physicsModel.position.copy();
+        // Move spawn point to a point on the bounding circle 
+        position.translate(trajectory.copy().multiply(this.physicsModel.boundingCircleR));
+        // Set velocity and add ships trajectory
+        trajectory.multiply(10).add(this.physicsModel.moveVector);
         this.scenario.createProp(
             'bullet',
-            this.physicsModel.position,
-            Vector2d.createFromAngle(this.physicsModel.rotateAngle).multiply(5),
+            position,
+            trajectory,
             'player'
         );
      }
