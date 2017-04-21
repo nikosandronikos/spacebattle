@@ -100,7 +100,7 @@ class ControlledObject extends GameObject {
         const boundActionFn = actionFn.bind(this, ...extraParams);
         this.controlBindings.push(
             function() {
-                boundActionFn(Keyboard.pressed(key));
+                boundActionFn(key, Keyboard.pressed(key));
             }
         );
     }
@@ -111,17 +111,26 @@ class ControlledObject extends GameObject {
         for (let binding of this.controlBindings)
             binding();
      }
+
+     fireCannon() {
+        this.scenario.createProp(
+            'bullet',
+            this.physicsModel.position,
+            Vector2d.createFromAngle(this.physicsModel.rotateAngle).multiply(5),
+            'player'
+        );
+     }
 }
 
 // methods in this class must be called with a ControlledObject bound
 const PlayerControl = {
-    "rotateLeft": function(keyState) {
+    "rotateLeft": function(key, keyState) {
         if (keyState) this.physicsModel.rotate(-1);
     },
-    "rotateRight": function(keyState) {
+    "rotateRight": function(key, keyState) {
         if (keyState) this.physicsModel.rotate(1);
     },
-    "setThruster": function(i, keyState) {
+    "setThruster": function(i, key, keyState) {
         // If there's multiple thrusters, i specifies the
         // index of the thruster being controlled.
         if (i === 0) {
@@ -138,7 +147,7 @@ const PlayerControl = {
     "fireCannon": function () {
         if (keyState) this.fireCannon();
     },
-    "tractor": function(keyState) {
+    "tractor": function(key, keyState) {
         if (keyState) {
             console.log('tractor beam engaged');
             this.target.physicsModel.addExternalForce(
