@@ -144,8 +144,11 @@ const PlayerControl = {
         }
         this.physicsModel.thruster(i).firing = keyState;
     },
-    "fireCannon": function () {
-        if (keyState) this.fireCannon();
+    "fireCannon": function(key, keyState) {
+        if (keyState) {
+            Keyboard.ignoreUntilReleased(key);
+            this.fireCannon();
+        }
     },
     "tractor": function(key, keyState) {
         if (keyState) {
@@ -194,7 +197,7 @@ export function createPlayerFromConfig(scenario, physicsSystem, config) {
             case "rotate_right":
                 player.bindKeyboardControl(control[key], PlayerControl.rotateRight);
                 break;
-            case "cannon":
+            case "fireCannon":
                 player.bindKeyboardControl(control[key], PlayerControl.fireCannon);
                 break;
             case "tractor":

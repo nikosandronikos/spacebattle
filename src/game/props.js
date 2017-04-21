@@ -7,6 +7,17 @@ import {GameObject} from './gameObject.js';
 // The number of small asteroids to spawn when a large one is destroyed
 const smallAsteroidsInBig = 3;
 
+let bulletCounter = 0;
+
+export class BulletObject extends GameObject {
+    constructor(scenario, renderObject, physicsModel, stats) {
+        super(scenario, renderObject, physicsModel, stats);
+        this.name = `Bullet_${bulletCounter++}`;
+        this.updateRenderer();
+        this.physicsModel.name = this.name;
+    }
+};
+
 let asteroidCounter = 0;
 
 export class AsteroidObject extends GameObject {

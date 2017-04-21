@@ -81,8 +81,7 @@ export class Scenario {
                         "thrust":       [Keyboard.KEY_UP, Keyboard.KEY_DOWN],
                         "rotate_left":  Keyboard.KEY_LEFT,
                         "rotate_right": Keyboard.KEY_RIGHT,
-                        "fireCannon":      Keyboard.KEY_SPACE,
-                        "fireCannon":      Keyboard.LEFT_SHIFT
+                        "fireCannon":      Keyboard.KEY_K
                     },
                     stats: {
                         hp: 100
@@ -109,7 +108,8 @@ export class Scenario {
                     "control": {
                         "thrust":       [Keyboard.KEY_W],
                         "rotate_left":  Keyboard.KEY_A,
-                        "rotate_right": Keyboard.KEY_D
+                        "rotate_right": Keyboard.KEY_D,
+                        "fireCannon": Keyboard.KEY_SPACE
                     },
                     stats: {
                         hp: 80
