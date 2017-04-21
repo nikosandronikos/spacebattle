@@ -15,6 +15,14 @@ export class BulletObject extends GameObject {
         this.name = `Bullet_${bulletCounter++}`;
         this.updateRenderer();
         this.physicsModel.name = this.name;
+        this.timeToDissapear = 4000; // ms
+    }
+
+    update(timeDelta, worldState) {
+        console.log(this.timeToDissapear);
+        if ((this.timeToDissapear -= timeDelta) < 1) {
+            this.damage(this.stats.hp);
+        }
     }
 };
 
