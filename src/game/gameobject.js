@@ -3,6 +3,8 @@ import {Vector2d} from '../2dGameUtils';
 import {Keyboard} from '../2dGameUtils';
 import {Log} from '../2dGameUtils';
 
+//FIXME: Should I just be importing from the physics directory?
+// It has an index file.
 import {PhysicsModel} from '../physics/physics';
 
 // Must have a GameObject, or subclass, bound.
