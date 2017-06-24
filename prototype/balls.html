@@ -1,24 +1,23 @@
 <!doctype html>
 <head>
 <title>Space Battle</title>
-<script src="../src/input.js"></script>
-<script src="../src/vector.js"></script>
-<script src="../src/priorityqueue.js"></script>
-<script src="../src/observable.js"></script>
-<script src="../src/collision.js"></script>
-<script src="../src/physics.js"></script>
-<script src="../src/RenderObject.js"></script>
-<script src="../src/game.js"></script>
+<script src="../build/pixi.js"></script>
+<script src="../build/spacebattle.js"></script>
+<script src="RenderObject.js"></script>
 <script>
-    function createBall(physicsSystem) {
-        const size = Math.random() * 3 + 1;
+
+    function createBall(physicsSystem, pos, motion, size=Math.random() * 2 + 0.5) {
         const ball = {
                 renderObject: createRenderObject("randomColouredBall", size),
-                physicsObject: new PhysicsModel(physicsSystem, size, size * 4, {x: Math.random() * 100, y: Math.random() * 100})
+                physicsObject: new SPACEBATTLE.PhysicsModel(
+                    physicsSystem,
+                    size,
+                    size,
+                    pos,
+                    motion,
+                    10.0
+                )
             };
-
-        ball.physicsObject.addExternalForce(Vector2d.createFromAngle(Math.random() * 360, size * 4 * 8), 1);
-        physicsSystem.add(ball.physicsObject);
 
         return ball;
     }
@@ -27,30 +26,62 @@
         const size = 5;
         const planet = {
                 renderObject: createRenderObject("randomColouredBall", size),
-                physicsObject: new PhysicsModel(physicsSystem, size, 1000, {x: 50, y: 50})
+                physicsObject: new SPACEBATTLE.PhysicsModel(physicsSystem, size, 1000, {x: 50, y: 50}, {x: 0.01, y: 0.01}, 1.0)
             };
-
-        planet.physicsObject.addExternalForce(Vector2d.createFromAngle(Math.random() * 360, size * 4 * 4), 1);
-        physicsSystem.add(planet.physicsObject);
 
         return planet;
     }
 
-    class BallGame extends Game {
+    class BallGame extends SPACEBATTLE.Game {
         constructor() {
             super();
+
+            this.physicsSystem = new SPACEBATTLE.PhysicsSystem();
 
             this.balls = [];
 
             for (let i = 0; i < 15; i++) {
-                this.balls.push(createBall(this.physicsSystem));
+                this.balls.push(createBall(
+                    this.physicsSystem,
+                    {x: Math.random() * 80 + 10, y: Math.random() * 80 + 10},
+                    {x: (Math.random() * 2 - 1) * 0.1, y: (Math.random() * 2 - 1) * 0.1}
+                ));
             }
+            // FIXME: Making some balls very large shows an issue with collision detection
+            // where a ball warped to the opposite side of the screen does not have a 
+            // collision recorded if it appears after warping partly inside another
+            // object.
+            this.balls.push(createBall(this.physicsSystem, {x: 30, y: 50}, {x: 0.5, y: 0}, 2));
+            this.balls.push(createBall(this.physicsSystem, {x: 70, y: 50}, {x: -0.5, y: 0}, 2));
 
             this.balls.push(createPlanet(this.physicsSystem));
         }
-    
-        update(time) {
-            this.physicsSystem.update(this.physicsFrameTime);
+
+        run() {
+            document.addEventListener('focus', SPACEBATTLE.Keyboard.resetAllKeys);
+            window.addEventListener('keydown', SPACEBATTLE.Keyboard.keydown_handler);
+            window.addEventListener('keyup', SPACEBATTLE.Keyboard.keyup_handler);
+            this.physicsSystem.setBoundaries(new SPACEBATTLE.Rect(0, 0, 100, 100));
+            super.run();
+        }
+   
+        end() {
+            super.end();
+            window.removeEventListener('keydown', SPACEBATTLE.Keyboard.keydown_handler);
+            window.removeEventListener('keyup', SPACEBATTLE.Keyboard.keyup_handler);
+            console.log('ending');
+        }
+
+        gameloop(time) {
+            if (SPACEBATTLE.Keyboard.pressed(SPACEBATTLE.Keyboard.KEY_ESC)) {
+                this.end();
+                return;
+            }
+            super.gameloop(time);
+        }
+
+        update(physicsFrameTime) {
+            this.physicsSystem.update(physicsFrameTime);
         }
 
         render(interoplate) {
