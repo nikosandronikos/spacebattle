@@ -347,6 +347,10 @@ export class CollisionResolver {
         }
     }
 
+    // Returns the time when model a collides with model b, or false if no
+    // collision occurs.
+    // THe returned time is between 0 and 1 and indicates a time along model
+    // a and b's motion vectors.
     static checkModelCollision(a, b) {
         if (!a.collidable || !b.collidable) return false;
 
