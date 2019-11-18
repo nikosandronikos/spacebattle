@@ -205,8 +205,8 @@ export class CollisionResolver {
         this.trackedModels = new LinkedList();
 
         // PriorityQueue of collisions so they can be resolved in time
-        // order.
-        this.collisions = new PriorityQueue((a, b) => a.time < b.time);
+        // order. Priority is smallest first.
+        this.collisions = new PriorityQueue((a, b) => b.time - a.time);
 
         this.boundaryLines = [];
 
